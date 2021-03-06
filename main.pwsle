@@ -1,0 +1,1367 @@
+// EarthOS kernel
+//
+//    Copyright (C) 2021  adazem009
+//
+// This is the main source code of the EarthOS kernel. I won't explain how the kernel works here,
+// use the docs (if I've written some) for that.
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Functions
+define/"kmsg"
+{
+	warp
+		// kmsg/[source],[color],[message],[message],...
+		getlistlength/"arg_1"/"kmc"
+		calc/"kup=%time-$kstart"/2
+		set/"ts","[ ",kup," ] "/"kmi",0
+		//print/"ˇ000255000ˇ",ts
+		print/\c"000255000",ts
+		getlength/ts/"tsl"
+		getitem/"arg_1",2/"kmcl"
+		repeat/kmc
+			calc/"kmi=kmi+1"
+			getitem/"arg_1",kmi/"km"
+			if/[km == "\n"] and [kmi > 2]
+				print/\n
+				calc/"tsl2=tsl-1"
+				// ^^^ Fix an incorrect text alignment
+				repeat/tsl2
+					print/" "
+				endloop
+			else
+				if/[km != ""]
+					if/[kmi == 1]
+						print/\c"2461160",km,": "
+					else
+						// I know this is duplicate, but the colored
+						// text is a bit broken in SMC Computer, so
+						// I used this workaround
+						if/[kmi > 2]
+							//print/km
+							print/\ckmcl,km
+						endif
+					endif
+				else
+					if/[kmi > 2]
+						//print/km
+						print/\ckmcl,km
+					endif
+				endif
+			endif
+		endloop
+		print/\n
+	endwarp
+}
+define/"PANIC"
+{
+	// PANIC/[error description]
+	warp
+		getitem/"arg_1",1/"panicdesc"
+		kmsg/"Kernel panic",255000000,"\n",panicdesc
+		// Uncomment the lines below to enable auto reboot after panic
+		//kmsg/"",255255255,"Rebooting in 10 seconds..."
+	endwarp
+	//wait/10
+	//reboot
+	// The lines below should be commented out if auto reboot is enabled
+	while/[true]
+		// nothing here
+		wait/1000
+	endloop
+}
+define/"_listpart"
+{
+	warp
+		// _listpart/[partition table image]/[output list - names],[output list - sizes],[output list - data]
+		getitem/"arg_1",1/"ptim"
+		getitem/"arg_2",1/"oln"
+		getitem/"arg_2",2/"ols"
+		getitem/"arg_2",3/"old"
+		bintolist/ptim/"ptlist"
+		getlistlength/"ptlist"/"ptl"
+		setlist/oln,ols,old
+		set/"lpi",0
+		while/[lpi < ptl]
+			// Partition name
+			calc/"lpi=lpi+1"
+			getitem/"ptlist",lpi/"pr"
+			append/pr/oln
+			// Partition size
+			calc/"lpi=lpi+1"
+			getitem/"ptlist",lpi/"pr"
+			append/pr/ols
+			// Partition content
+			calc/"lpi=lpi+1"
+			getitem/"ptlist",lpi/"pr"
+			append/pr/old
+		endloop
+	endwarp
+}
+define/"resolvedev"
+{
+	warp
+		// resolvedev/[path]
+		getitem/"arg_1",1/"devp"
+		set/"dvn","$",devp/"rdi",0/"dlt",""
+		readvar/dvn/"dv"
+		setlist/"dl"
+		getlength/dv/"dvl"
+		repeat/dvl
+			calc/"rdi=rdi+1"
+			getletter/dv,rdi/"rdl"
+			if/[rdl == ","]
+				append/dlt/"dl"
+				set/"dlt",""
+			else
+				set/"dlt",dlt,rdl
+			endif
+		endloop
+		append/dlt/"dl"
+	endwarp
+}
+define/"_ls"
+{
+	warp
+		// _ls/[fs image]/[output list - types],[output list - names],[output list - data]
+		getitem/"arg_1",1/"path"
+		getitem/"arg_1",2/"fs"
+		getitem/"arg_2",1/"olt"
+		getitem/"arg_2",2/"oln"
+		getitem/"arg_2",3/"old"
+		setlist/olt,oln,old
+		// Convert binary
+		bintolist/fs/"fsl"
+		getlistlength/"fsl"/"fsll"
+		set/"i",1
+		//     ^^^ This is 1 because the first item is the filesystem format (FSSC2 in this case)
+		while/[i < fsll]
+			// Definition path
+			calc/"i=i+1"
+			getitem/"fsl",i/"def"
+			//print/"def=",def,\n
+			// Number of files
+			calc/"i=i+1"
+			getitem/"fsl",i/"c"
+			//print/"c=",c,\n
+			// Get files under current definition
+			repeat/c
+				// Type - file or folder
+				calc/"i=i+1"
+				getitem/"fsl",i/"ft"
+				// File name
+				calc/"i=i+1"
+				getitem/"fsl",i/"fn"
+				//print/fn,\n
+				// File data
+				calc/"i=i+1"
+				getitem/"fsl",i/"fd"
+				// Skip permissions, owner, group and attributes
+				calc/"i=i+4"
+				if/[def == path]
+					append/ft/olt
+					append/fn/oln
+					append/fd/old
+				endif
+			endloop
+		endloop
+	endwarp
+}
+define/"_fixpath"
+{
+	warp
+		// _fixpath/[path]/[output variable]
+		getitem/"arg_1",1/"path"
+		getitem/"arg_1",2/"out"
+		getlength/path/"len"
+		set/"cur",pwd
+		setlist/"parts"
+		set/"i",0/"part",""
+		while/[i < len]
+			calc/"i=i+1"
+			getletter/path,i/"let"
+			if/[let == "/"]
+				if/[i == 1]
+					set/"part","/"
+				endif
+				append/part/"parts"
+				if/[part == "."] or [part == ""]
+					// Go to pwd
+					// this needn't be defined
+				else
+					if/[part == ".."]
+						// Go up
+						getlength/cur/"len2"
+						setlist/"parts2"
+						set/"part2",""/"i2",0
+						repeat/len2
+							calc/"i2=i2+1"
+							getletter/part2,i2/"let"
+							if/[let == "/"] and [i2 > 1]
+								append/part2/"parts2"
+								set/"part2",""
+							endif
+						endloop
+						getlistlength/"parts2"/"len2"
+						sub/len2,1/"len2"
+						set/"cur",""/"i2",0
+						repeat/len2
+							calc/"i2=i2+1"
+							getitem/"parts2",i2/"it"
+							set/"cur",cur,"/",it
+						endloop
+					else
+						if/[cur == "/"]
+							set/"cur","/",part
+						else
+							set/"cur",cur,"/",part
+						endif
+					endif
+				endif
+				set/"part",""
+			else
+				set/"part",part,let
+			endif
+		endloop
+		set/"path",cur
+	endwarp
+}
+define/"_set"
+{
+	warp
+		// _set/[var name],[value]
+		// This function was ported from SMC Computer.
+		getitem/"arg_1",1/"varn"
+		getitem/"arg_1",2/"varv"
+		getletter/varn,1/"flvn"
+		if/[flvn == "$"]
+			set/"nvarn","gl_vn"
+			set/"nvarv","gl_vv"
+		else
+			set/"nvarn","vn"
+			set/"nvarv","vv"
+		endif
+		set/"seti",0
+		getlistlength/nvarn/"settmp"
+		set/"found",0
+		while/[seti < settmp]
+			calc/"seti=seti+1"
+			getitem/nvarn,seti/"name"
+			if/[name == varn]
+				set/"found",1
+			endif
+		endloop
+		if/[found == 0]
+			append/varn/nvarn
+			append/varv/nvarv
+		else
+			getindex/nvarn,varn/"tmp"
+			replace/tmp,varv/nvarv
+		endif
+	endwarp
+}
+define/"_envupdate"
+{
+	warp
+		// _envupdate
+		// (no arguments)
+		// This function was ported from SMC Computer.
+		// It has some EarthOS-specific additions.
+		//
+		// Username
+		_set/"%user",%user
+		// Timestamp (seconds since 2000)
+		_set/"%time",%time
+		// FPS
+		_set/"%fps",%fps
+		// BIOS Uptime (in seconds)
+		_set/"%uptime",%uptime
+		// Kernel uptime (in seconds)
+		calc/"tmp=%time-$kstart"
+		_set/"%kuptime",tmp
+		// CPU usage (in %) - depends on FPS
+		_set/"%cpu",%cpu
+		// Number of running processes
+		getlistlength/"processes"/"tmp"
+		_set/"%ps",tmp
+		// Process ID
+		_set/"%pid",pid
+	endwarp
+}
+define/"skip_loop"
+{
+	warp
+		set/"si",res1/"pos",0
+		getitem/"command",1/"it"
+		while/[it == 3] nand [pos == 0]
+			calc/"si=si+1"
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			getitem/"command",1/"it"
+			set/"si",si2/"res1",si2
+			if/[it == 2] or [it == 7]
+				calc/"pos=pos+1"
+			endif
+			if/[it == 3] and [pos > 0]
+				calc/"pos=pos-1"
+			endif
+		endloop
+	endwarp
+}
+define/"skip_if"
+{
+	warp
+		set/"si",res1/"pos",1
+		getitem/"command",1/"it"
+		while/[it == 5] nand [pos == 0]
+			calc/"si=si+1"
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			getitem/"command",1/"it"
+			set/"si",si2/"res1",si2
+			if/[it == 4]
+				calc/"pos=pos+1"
+			endif
+			if/[it == 5]
+				calc/"pos=pos-1"
+			endif
+		endloop
+	endwarp
+}
+define/"_if"
+{
+	warp
+		// _if/[global? 1/0],[global custom ID]
+		// This function was ported from SMC Computer.
+		getitem/"arg_1",1/"gl?"
+		if/[gl? == 1]
+			getitem/"arg_1",2/"cid"
+		else
+			set/"gl?",0/"cid",si
+		endif
+		setlist/"gates"
+		set/"si3",0
+		getlistlength/"command"/"cmdl"
+		calc/"cmdl=cmdl-1"
+		repeat/cmdl
+			calc/"si3=si3+1"
+			smc_getarg/"script",cid,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			set/"ln","argument",si3
+			mod/si3,2/"md"
+			if/[md == 1]
+				set/"go",0
+				getitem/ln,2/"op"
+				getitem/ln,1/"A1"
+				getitem/ln,3/"A2"
+				if/[op == "=="]
+					// A1 equals A2
+					if/[A1 == A2]
+						set/"go",1
+					else
+						set/"go",0
+					endif
+				else
+					if/[op == "!="]
+						// NOT A1 equals A2
+						if/[A1 == A2]
+							set/"go",0
+						else
+							set/"go",1
+						endif
+					else
+						if/[op == ">"]
+							// A1 is greater than A2
+							if/[A1 > A2]
+								set/"go",1
+							else
+								set/"go",0
+							endif
+						else
+							if/[op == "!>"]
+								// NOT A1 is greater than A2
+								if/[A1 !> A2]
+									set/"go",1
+								else
+									set/"go",0
+								endif
+							else
+								if/[op == "<"]
+									// A1 is lower than A2
+									if/[A1 < A2]
+										set/"go",1
+									else
+										set/"go",0
+									endif
+								else
+									if/[op == "!<"]
+										// NOT A1 is lower than A2
+										if/[A1 !< A2]
+											set/"go",1
+										else
+											set/"go",0
+										endif
+									else
+										if/[op == ">="]
+											// A1 is greater or equal to A2
+											if/[A1 >= A2]
+												set/"go",1
+											else
+												set/"go",0
+											endif
+										else
+											if/[op == "!<="]
+												// NOT A1 is greater or equal to A2
+												if/[A1 !<= A2]
+													set/"go",1
+												else
+													set/"go",1
+												endif
+											else
+												if/[op == "<="]
+													// A1 is lower or equal to A2
+													if/[A1 <= A2]
+														set/"go",1
+													else
+														set/"go",1
+													endif
+												else
+													if/[op == "!<="]
+														// NOT A1 is lower or equal to A2
+														if/[A1 !<= A2]
+															set/"go",1
+														else
+															set/"go",1
+														endif
+													endif
+												endif
+											endif
+										endif
+									endif
+								endif
+							endif
+						endif
+					endif
+				endif
+				getitem/ln,4/"aop"
+				if/[aop == "!"]
+					// NOT
+					calc/"go=1-go"
+				endif
+				append/go/"gates"
+			else
+				getitem/ln,1/"op"
+				append/op/"gates"
+			endif
+		endloop
+		set/"go",0/"i2",0
+		getlistlength/"gates"/"cmdl"
+		if/[cmdl == 1]
+			getitem/"gates",1/"go"
+		endif
+		// ^^^ I used cmdl here because it isn't used by anything.
+		calc/"cmdl=cmdl-1"
+		div/cmdl,2/"cmdl"
+		repeat/cmdl
+			calc/"i2=i2+2"
+			setlist/"gate"
+			if/[i2 == 2]
+				calc/"tmp=i2-1"
+				getitem/"gates",tmp/"tmp"
+				append/tmp/"gate"
+			else
+				append/go/"gate"
+			endif
+			getitem/"gates",i2/"tmp"
+			append/tmp/"gate"
+			calc/"tmp=i2+1"
+			getitem/"gates",tmp/"tmp"
+			append/tmp/"gate"
+			getitem/"gate",2/"op"
+			getitem/"gate",1/"A1"
+			getitem/"gate",3/"A2"
+			calc/"sum=A1+A2"
+			if/[op == "&&"]
+				// AND
+				if/[sum == 2]
+					set/"go",1
+				else
+					set/"go",0
+				endif
+			else
+				if/[op == "!&"]
+					// NAND
+					if/[sum != 2]
+						set/"go",1
+					else
+						set/"go",0
+					endif
+				else
+					if/[op == "||"]
+						// OR
+						if/[sum != 0]
+							set/"go",1
+						else
+							set/"go",0
+						endif
+					else
+						if/[op == "!|"]
+							// NOR
+							if/[sum == 0]
+								set/"go",1
+							else
+								set/"go",0
+							endif
+						else
+							if/[op == "//"]
+								// XOR
+								if/[sum == 1]
+									set/"go",1
+								else
+									set/"go",0
+								endif
+							else
+								if/[op == "!/"]
+									// XNOR
+									if/[sum != 1]
+										set/"go",1
+									else
+										set/"go",0
+									endif
+								endif
+							endif
+						endif
+					endif
+				endif
+			endif
+		endloop
+		if/[gl? == 0] and [go == 0]
+			set/"si",res1/"pos",1/"c",0
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			while/[c == 0]
+				calc/"si=si+1"
+				smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+				set/"si",si2/"res1",si2
+				getitem/"command",1/"opc"
+				if/[opc == 4]
+					calc/"pos=pos+1"
+				endif
+				if/[opc == 5] and [pos > 0]
+					calc/"pos=pos-1"
+				endif
+				if/[opc == 5] and [pos == 0]
+					set/"c1",1
+				else
+					set/"c1",0
+				endif
+				if/[opc == 6] and [pos == 1]
+					set/"c2",1
+				else
+					set/"c2",0
+				endif
+				if/[c1 == 1] or [c2 == 1]
+					set/"c",1
+				else
+					set/"c",0
+				endif
+			endloop
+		endif
+	endwarp
+}
+define/"_runcommand"
+{
+	getitem/"command",1/"opcode"
+	// Uncomment if needed for debugging:
+	//print/si,": ",opcode,\n
+	set/"known",1
+	if/[opcode == "0"]
+		// Exit.
+		// 0
+		getlistlength/"script"/"si"
+		set/"res1",si
+	else
+		if/[opcode == "2"]
+			// Number: Go forward a number of lines.
+			// !Number: Jump to a line.
+			// 1/[value]
+			getitem/"argument1",1/"in"
+			getletter/in,1/"let"
+			if/[let == "!"]
+				set/"temp",""/"i2",1
+				getlength/in/"len"
+				calc/"len=len-1"
+				repeat/len
+					calc/"i2=i2+1"
+					getletter/in,i2/"let"
+					set/"temp",temp,let
+				endloop
+				calc/"si=temp-1"
+			else
+				calc/"in2=in-1"
+				calc/"si=si+in2"
+			endif
+		else
+			if/[opcode == "2"]
+				// Repeat loop.
+				// 2/[count]
+				if/[in <= 0]
+					skip_loop
+					set/"opcode",""
+				else
+					append/1/"loops-i"
+					append/si/"loops-id"
+					getitem/"argument1",1/"in"
+					append/in/"loops-max"
+				endif
+			else
+				if/[opcode == "3"]
+					// The end of the last loop.
+					// 3
+					getlistlength/"loops-i"/"lil"
+					getitem/"loops-i",lil/"lit"
+					getitem/"loops-max",lil/"lit2"
+					if/[lit == 0]
+						// End of while loop.
+						smc_getarg/"script",lit2,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+						_if/1,lit2
+						if/[go == 1]
+							getitem/"loops-id",lil/"si"
+							smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+							set/"si",si2/"res1",si2
+						else
+							deleteitem/lil/"loops-i"
+							deleteitem/lil/"loops-id"
+							deleteitem/lil/"loops-max"
+						endif
+					else
+						// End of repeat loop.
+						if/[lit < lit2]
+							calc/"new=lit+1"
+							replace/lil,new/"loops-i"
+							getitem/"loops-id",lil/"si"
+							_envupdate
+							smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+							set/"si",si2/"res1",si
+						else
+							deleteitem/lil/"loops-i"
+							deleteitem/lil/"loops-id"
+							deleteitem/lil/"loops-max"
+						endif
+					endif
+					set/"opcode",""
+				else
+					if/[opcode == "4"]
+						// If.
+						// 4/<condition...>
+						_if
+						set/"opcode",""
+					else
+						if/[opcode == "5"]
+							// End if.
+							// 5
+						else
+							if/[opcode == "6"]
+								// Else.
+								// 6
+								skip_if
+							else
+								if/[opcode == "7"]
+									// While loop.
+									// 7/<condition ...>
+									_if/1,si
+									if/[go == 1]
+										append/0/"loops-i"
+										append/si/"loops-id"
+										append/si/"loops-max"
+									else
+										skip_loop
+									endif
+									set/"opcode",""
+								else
+									if/[opcode == "A"]
+										// Print.
+										// A/[string]/[bold],[italic],[underlined]
+										// This needs more work
+										getitem/"argument1",1/"in"
+										getitem/"argument2",1/"in1"
+										getitem/"argument2",2/"in2"
+										getitem/"argument2",3/"in3"
+										if/[pcol == "255255255"]
+											print/\bin1,\iin2,\uin3,in,\b0,\i0,\u0
+										else
+											print/\bin1,\iin2,\uin3,\cpcol,in,\b0,\i0,\u0
+										endif
+									else
+										if/[opcode == "B"]
+											// Ask and save to variable in input 2 of argument 1.
+											// B/[string],[variable]
+											// This needs more work
+											getitem/"argument1",1/"in1"
+											getitem/"argument1",2/"in2"
+											endwarp
+												read/in1,"emctmp"
+											warp
+											_set/in2,emctmp
+										else
+											if/[opcode == "C"]
+												// Wait for a(ny) key to be pressed.
+												// Input 1 of argument 1 is the key.
+												// Input 2 of argument 1 (0 or 1) toggles release waiting. It'll wait until you release the key after you pressed it.
+												// C/[value]
+												getitem/"argument1",1/"in"
+												keywait/in
+											else
+												if/[opcode == "D"]
+												// Clear the screen.
+												// D
+												// This needs more work
+												clear
+												else
+													if/[opcode == "E"]
+														// Print a newline.
+														// E
+														// This needs more work
+														print/\n
+													else
+														if/[opcode == "F"]
+															// Operations.
+															// F/[operation ID(s)]/[target variable(s)]/[inputs]/[scale]
+															set/"scale",16/"i2",0
+															getitem/"argument4",1/"in"
+															if/[in != ""]
+																set/"scale",in
+															endif
+															setlist/"ops"/""
+															getlistlength/"argument4"/"len"
+															repeat/len
+																calc/"i2=i2+1"
+																getitem/"argument4",i2/"in"
+																append/in/"ops"
+															endloop
+															getlistlength/"argument3"/"len"
+															set/"temp2",0/"i2",0
+															repeat/len
+																calc/"i2=i2+1"
+																getitem/"argument3",i2/"in"
+																if/[i2 == 1]
+																	set/"temp2",in
+																else
+																	getitem/"ops",i2/"op"
+																	if/[op == 1]
+																		add/temp2,in/"temp2"
+																	endif
+																	if/[op == 2]
+																		sub/temp2,in/"temp2"
+																	endif
+																	if/[op == 3]
+																		multi/temp2,in/"temp2"
+																	endif
+																	if/[op == 4]
+																		div/temp2,in/"temp2"
+																	endif
+																	if/[op == 5]
+																		mod/temp2,in/"temp2"
+																	endif
+																endif
+															endloop
+															getlistlength/"argument2"/"len"
+															set/"i2",0
+															repeat/len
+																calc/"i2=i2+1"
+																getitem/"argument2",i2/"in"
+																_set/in,temp2
+															endloop
+														else
+															if/[opcode == "10"]
+																// Set variable(s) to value(s).
+																// 10/[var name],[value]/[var name],[value]/...
+																getlistlength/"command"/"len"
+																calc/"len=len-1"
+																set/"i3",0
+																repeat/len
+																	calc/"i3=i3+1"
+																	set/"an","argument",i3
+																	getlistlength/an/"len2"
+																	calc/"len2=len2-1"
+																	set/"temp",""/"i4",1
+																	repeat/len2
+																		calc/"i4=i4+1"
+																		getitem/an,i4/"in"
+																		set/"temp",temp,in
+																	endloop
+																	getitem/an,1/"in"
+																	_set/in,temp
+																endloop
+															else
+																if/[opcode == "11"]
+																	// Round a value and write the result into variable(s).
+																	// 11/[value],[number of digits]/[variable(s)]
+																	getitem/"argument1",1/"in1"
+																	getitem/"argument1",2/"in2"
+																	round/in1,in2/"temp2"
+																	getlistlength/"argument2"/"len"
+																	set/"i2",0
+																	repeat/len
+																		calc/"i2=i2+1"
+																		getitem/"argument2",i2/"in"
+																		_set/in,temp2
+																	endloop
+																else
+																	if/[opcode == "12"]
+																		// Get letter of a string and save it in variable(s).
+																		// 12/[string],[letter]/[variable(s)]
+																		getitem/"argument1",1/"in1"
+																		getitem/"argument1",2/"in2"
+																		getletter/in1,in2/"temp2"
+																		getlistlength/"argument2"/"len"
+																		set/"i2",0
+																		repeat/len
+																			calc/"i2=i2+1"
+																			getitem/"argument2",i2/"in"
+																			_set/in,temp2
+																		endloop
+																	else
+																		if/[opcode == "13"]
+																			// Get length of a string and save it in variable(s).
+																			// 13/[string]/[variable(s)]
+																			getitem/"argument1",1/"in"
+																			getlength/in/"temp2"
+																			getlistlength/"argument2"/"len"
+																			set/"i2",0
+																			repeat/len
+																				calc/"i2=i2+1"
+																				getitem/"argument2",i2/"in"
+																				_set/in,temp2
+																			endloop
+																		else
+																			if/[opcode == "14"]
+																				// Setup list(s).
+																				// 14/[list name(s)]/[items]
+																				listtobin/"argument2"/"temp2"
+																				getlistlength/"argument1"/"len"
+																				set/"i2",0
+																				repeat/len
+																					calc/"i2=i2+1"
+																					getitem/"argument1",i2/"in"
+																					getlistlength/"listn"/"len2"
+																					set/"i3",0/"con",0
+																					while/[i3 < len2]
+																						calc/"i3=i3+1
+																						getitem/"listn",i3/"it"
+																						if/[it == in]
+																							set/"i3",len2/"con",1
+																						endif
+																					endloop
+																					if/[con == 0]
+																						append/in/"listn"
+																						append/""/"listc"
+																					endif
+																					getindex/"listn",in/"ix"
+																					replace/ix,temp2/"listc"
+																				endloop
+																			else
+																				if/[opcode == "15"]
+																					// Append to list.
+																					// 15/[string]/[list name]
+																					getitem/"argument1",1/"in1"
+																					getitem/"argument2",1/"in2"
+																					getlength/in1/"il"
+																					getlistlength/"listn"/"len2"
+																					set/"i3",0/"con",0
+																					while/[i3 < len2]
+																						calc/"i3=i3+1
+																						getitem/"listn",i3/"it"
+																						if/[it == in2]
+																							set/"i3",len2/"con",1
+																						endif
+																					endloop
+																					if/[con == 1]
+																						getindex/"listn",in2/"ix"
+																						getitem/"listc",ix/"it"
+																						set/"it",it,il,";",in1
+																						replace/ix,it/"listc"
+																					else
+																						append/in2/"listn"
+																						set/"it",il,";",in1
+																						append/it/"listc"
+																					endif
+																				else
+																					if/[opcode == "16"]
+																						// Replace item in list.
+																						// 16/[item],[string]/[list name]
+																						getitem/"argument1",1/"in1"
+																						getitem/"argument1",2/"in2"
+																						getitem/"argument2",1/"in3"
+																						getlistlength/"listn"/"len2"
+																						set/"i3",0/"con",0
+																						while/[i3 < len2]
+																							calc/"i3=i3+1"
+																							getitem/"listn",i3/"it"
+																							if/[it == in3]
+																								set/"i3",len2/"con",1
+																							endif
+																						endloop
+																						if/[con == 1]
+																							getindex/"listn",in2/"ix"
+																							getitem/"listc",ix/"it"
+																							bintolist/it/"new"
+																							replace/in1,in2/"new"
+																							listtobin/"new"/"it"
+																							replace/ix,it/"listc"
+																						endif
+																					else
+																						if/[opcode == "17"]
+																							// Insert item to list.
+																							// 17/[item],[string]/[list name]
+																							getitem/"argument1",1/"in1"
+																							getitem/"argument1",2/"in2"
+																							getitem/"argument2",1/"in3"
+																							getlistlength/"listn"/"len2"
+																							set/"i3",0/"con",0
+																							while/[i3 < len2]
+																								calc/"i3=i3+1
+																								getitem/"listn",i3/"it"
+																								if/[it == in3]
+																									set/"i3",len2/"con",1
+																								endif
+																							endloop
+																							if/[con == 1]
+																								getindex/"listn",in2/"ix"
+																								getitem/"listc",ix/"it"
+																								bintolist/it/"new"
+																								insert/in1,in2/"new"
+																								listtobin/"new"/"it"
+																								replace/ix,it/"listc"
+																							else
+																								append/in2/"listn"
+																								set/"it",il,";",in1
+																								append/it/"listc"
+																							endif
+																						else
+																							if/[opcode == "18"]
+																								// Get item from list.
+																								// 18/[list name],[item]/[variable(s)]
+																								getitem/"argument1",1/"in"
+																								getindex/"listn",in/"ix"
+																								getitem/"listc",ix/"it"
+																								bintolist/it/"list"
+																								getitem/"argument1",2/"in"
+																								getitem/"list",in/"temp2"
+																								getlistlength/"argument2"/"len"
+																								set/"i2",0
+																								repeat/len
+																									calc/"i2=i2+1"
+																									getitem/"argument2",i2/"in"
+																									_set/in,temp2
+																								endloop
+																							else
+																								if/[opcode == "19"]
+																									// Get length of list.
+																									// 19/[list name]/[variable(s)]
+																									getitem/"argument1",1/"in"
+																									getindex/"listn",in/"ix"
+																									getitem/"listc",ix/"it"
+																									bintolist/it/"list"
+																									getlistlength/"list"/"temp2"
+																									getlistlength/"argument2"/"len"
+																									set/"i2",0
+																									repeat/len
+																										calc/"i2=i2+1"
+																										getitem/"argument2",i2/"in"
+																										_set/in,temp2
+																									endloop
+																								// 1A is missing
+																								// 1B is missing
+																								else
+																									if/[opcode == "1C"]
+																										// Get currently pressed keys and save them in a list.
+																										// 1C/[list name]
+																										getitem/"argument1",1/"in"
+																										getkey/"list"
+																										listtobin/"list"/"bin"
+																										getlistlength/"listn"/"len2"
+																										set/"i3",0/"con",0
+																										while/[i3 < len2]
+																											calc/"i3=i3+1
+																											getitem/"listn",i3/"it"
+																											if/[it == in]
+																												set/"i3",len2/"con",1
+																											endif
+																										endloop
+																										if/[con == 1]
+																											getindex/"listn",in/"ix"
+																											replace/ix,bin/"listc"
+																										else
+																											append/in/"listn"
+																											append/bin/"listc"
+																										endif
+																									else
+																										if/[opcode == "1D"]
+																											// Set background color.
+																											// 1D/[RRRGGGBBB]
+																											getitem/"argument1",1/"in"
+																											bgcolor/in
+																										else
+																											if/[opcode == "1E"]
+																												// Warp.
+																												// 1E
+																												//
+																												// Nothing here, everything is already running in warp mode.
+																											else
+																												if/[opcode == "1F"]
+																													// End warp.
+																													// 1F
+																												else
+																													if/[opcode == "20"]
+																														// Wait.
+																														// 20/[seconds]
+																														getitem/"argument1",1/"in"
+																														endwarp
+																															wait/in
+																														warp
+																													else
+																														if/[opcode == "21"]
+																															// Set text color.
+																															// 21/[RRRGGGBBB]
+																															getitem/"argument1",1/"pcol"
+																														else
+																															if/[opcode == "22"]
+																																// Change directory
+																																// 22/[path]
+																																getitem/"argument1",1/"in"
+																																_fixpath/in
+																																set/"pwd",in
+																															else
+																																if/[opcode == "23"]
+																																	// Get current directory.
+																																	// 23/[output variable]
+																																	getitem/"argument1",1/"in"
+																																	_set/in,pwd
+																																// 24 is RESERVED
+																																// 25 is RESERVED
+																																else
+																																	if/[opcode == "26"]
+																																		// Beep.
+																																		// 26/[frequency],[duration in seconds]
+																																		getitem/"argument1",1/"in1"
+																																		getitem/"argument1",2/"in2"
+																																		beep/in1,in2
+																																	else
+																																		if/[opcode == "27"]
+																																			// Remove item from list.
+																																			// 27/[item]/[list name]
+																																			getitem/"argument1",1/"in1"
+																																			getitem/"argument2",1/"in3"
+																																			getlistlength/"listn"/"len2"
+																																			set/"i3",0/"con",0
+																																			while/[i3 < len2]
+																																				calc/"i3=i3+1
+																																				getitem/"listn",i3/"it"
+																																				if/[it == in3]
+																																					set/"i3",len2/"con",1
+																																				endif
+																																			endloop
+																																			if/[con == 1]
+																																				getindex/"listn",in2/"ix"
+																																				getitem/"listc",ix/"it"
+																																				bintolist/it/"new"
+																																				deleteitem/in1/"new"
+																																				listtobin/"new"/"it"
+																																				replace/ix,it/"listc"
+																																			endif
+																																		// 28 is RESERVED
+																																		// 29 is RESERVED
+																																		// 2A is RESERVED
+																																		// 2B is RESERVED
+																																		// 2C is RESERVED
+																																		// 2D is RESERVED
+																																		// 2E is RESERVED
+																																		// 2F is RESERVED
+																																		// 30 is RESERVED
+																																		// 31 is RESERVED
+																																		// 32 is RESERVED
+																																		else
+																																			if/[opcode == "33"]
+																																				// Convert binary to list.
+																																				// 33/[binary]/[list name]
+																																				getitem/"argument1",1/"in1"
+																																				getitem/"argument2",1/"in2"
+																																				getlistlength/"listn"/"len2"
+																																				set/"i3",0/"con",0
+																																				while/[i3 < len2]
+																																					calc/"i3=i3+1
+																																					getitem/"listn",i3/"it"
+																																					if/[it == in2]
+																																						set/"i3",len2/"con",1
+																																					endif
+																																				endloop
+																																				if/[con == 1]
+																																					getindex/"listn",in2/"ix"
+																																					replace/ix,in1/"listc"
+																																				else
+																																					append/in2/"listn"
+																																					append/in1/"listc"
+																																				endif
+																																			else
+																																				if/[opcode == "34"]
+																																					// Convert list to binary.
+																																					// 34/[list name]/[variable name]
+																																					getitem/"argument1",1/"in1"
+																																					getitem/"argument2",1/"in2"
+																																					getindex/"listn",in1/"ix"
+																																					getitem/"listc",ix/"it"
+																																					_set/in2,it
+																																				else
+																																					if/[opcode == "35"]
+																																						// Read variable.
+																																						// 35/[variable name]/[output variable name]
+																																						getitem/"argument1",1/"in1"
+																																						getitem/"argument2",1/"in2"
+																																						getletter/in1,1/"let"
+																																						if/[let == "$"]
+																																							getindex/"gl_vn",in1/"ix"
+																																							getitem/"gl_vv",ix/"it"
+																																						else
+																																							getindex/"vn",in1/"ix"
+																																							getitem/"vv",ix/"it"
+																																						endif
+																																						_set/in2,it
+																																					else
+																																						if/[opcode == "36"]
+																																							// Get index of an item.
+																																							// 36/[list name],[string]/[output variable name]
+																																							getitem/"argument1",1/"in1"
+																																							getitem/"argument1",2/"in2"
+																																							getitem/"argument2",1/"in3"
+																																							getindex/"listn",in1/"ix"
+																																							getitem/"listc",ix/"bin"
+																																							bintolist/bin/"list"
+																																							getindex/"list",in2/"it"
+																																							_set/in3,it
+																																						else
+																																							if/[opcode == "36"]
+																																								// Interpret SMC instruction.
+																																								// 37/[input list name],[index],[var names list],[var values list],[global var names list],[global var values list]/[index2 var name],[command list name],[argument lists prefix]
+																																								//
+																																								// The code below is unfinished! Virtualization support
+																																								// is going to come later. Tell us if you're interested in the porting process :)
+																																								//
+																																								//getitem/"argument1",1/"in1"
+																																								//getitem/"argument1",2/"in2"
+																																								//getitem/"argument1",3/"in3"
+																																								//getitem/"argument1",4/"in4"
+																																								//getitem/"argument1",5/"in5"
+																																								//getitem/"argument1",6/"in6"
+																																								//getitem/"argument2",1/"in7"
+																																								//getitem/"argument2",2/"in8"
+																																								//getitem/"argument2",3/"in9"
+																																								//getindex/"listn",in1/"ix"
+																																								//getitem/"listc",ix/"list"
+																																								//smc_getarg/"list",in2,"tmpvn","tmpvv","tmpglvn","tmpglvv"/"tmpsi2","cmd","tmparg"
+																																								//
+																																								set/"msgp","pid ",pid
+																																								kmsg/msgp,255255000,"Virtualization isn't supported yet!"
+																																							else
+																																								if/[opcode == "36"]
+																																									// Calculate absolute value.
+																																									// 38/[input]/[output variable]
+																																									getitem/"argument1",1/"in1"
+																																									getitem/"argument2",1/"in2"
+																																									abs/in1/"it"
+																																									_set/in2,it
+																																								else
+																																									set/"known",0
+																																								endif
+																																							endif
+																																						endif
+																																					endif
+																																				endif
+																																			endif
+																																		endif
+																																	endif
+																																endif
+																															endif
+																														endif
+																													endif
+																												endif
+																											endif
+																										endif
+																									endif
+																								endif
+																							endif
+																						endif
+																					endif
+																				endif
+																			endif
+																		endif
+																	endif
+																endif
+															endif
+														endif
+													endif
+												endif
+											endif
+										endif
+									endif
+								endif
+							endif
+						endif
+					endif
+				endif
+			endif
+		endif
+	endif
+	if/[known == 0]
+		set/"msgp","pid ",pid
+		kmsg/msgp,255255000,"unknown opcode ",opcode
+	endif
+}
+define/"_emc"
+{
+	warp
+		// _emc/[binary],[pid]
+		//
+		// It's better to run this function
+		// without screen refresh (warp)
+		// Instructions that can't run properly with warp
+		// will enter non-warp mode automatically
+		getitem/"arg_1",1/"bin"
+		getitem/"arg_1",2/"pid"
+		bintolist/bin/"script"
+		getlistlength/"script"/"slen"
+		set/"pcol","255255255"/"pwd","/"
+		setlist/"vn","vv","gl_vn","gl_vv","listn","listc"
+		set/"si",0
+		while/[si < slen]
+			calc/"si=si+1"
+			getitem/"script",si/"item"
+			_envupdate
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			set/"res1",si2
+			_runcommand
+			set/"si",res1
+		endloop
+		if/[si < slen]
+			set/"msgp","pid ",pid
+			kmsg/msgp,255255000,"Crashed for unknown reason!"
+		endif
+	endwarp
+}
+warp
+	clear
+	// Prevent kernel args from overwriting
+	listtobin/"arg_1"/"kab"
+	bintolist/kab/"kargs"
+	set/"kacount",arg_count
+	// Kernel start message
+	set/"$kstart",%time
+	kmsg/"",255255255,"EarthOS kernel loaded"
+	hidelogo
+endwarp
+// Process args
+if/[kacount > 1]
+	PANIC/"Only one SMC argument can be passed to the kernel."
+endif
+warp
+	set/"cm","Kernel command line: "
+	setlist/"KERNEL_INPUTS"
+	getlistlength/"kargs"/"inputs"
+	set/"i",0
+	while/[i < inputs]
+		calc/"i=i+1"
+		getitem/"kargs",i/"input"
+		getlength/input/"inputlen"
+		setlist/"inputparts"
+		set/"inputpart",""
+		set/"i2",0
+		while/[i2 < inputlen]
+			calc/"i2=i2+1"
+			getletter/input,i2/"letter"
+			if/[letter == "="]
+				append/inputpart/"inputparts"
+				set/"inputpart",""
+			else
+				set/"inputpart",inputpart,letter
+			endif
+		endloop
+		append/inputpart/"inputparts"
+		getitem/"inputparts",1/"setname"
+		getitem/"inputparts",2/"inputvalue"
+		set/"cm",cm,setname,"=",inputvalue," "
+		set/"setname","KERNEL_INPUT_",setname
+		set/setname,inputvalue
+	endloop
+	kmsg/"",255255255,cm
+endwarp
+// Map devices
+kmsg/"",255255255,"Mapping devices..."
+warp
+	listdisk/"disks"
+	getlistlength/"disks"/"dc"
+	kmsg/"",255255255,"Found ",dc," disk(s)"
+	set/"ki",0/"ab","abcdefghijklmnopqrstuvwxyz"
+	getlength/ab/"abl"
+	repeat/dc
+		calc/"ki=ki+1"
+		if/[ki > abl]
+			PANIC/"Max number of disks is 26 (for now)!"
+		endif
+		getletter/ab,ki/"let"
+		set/"mn","$/dev/sd",let
+		set/mn,ki/"mn2","sd",let
+		cpdisk/ki,1/"dbin"
+		kmsg/"",255255255,"d",ki," -> ",mn2
+		_listpart/dbin/"pt","pts","ptd"
+		getlistlength/"pt"/"pc"
+		kmsg/"",255255255,mn2,": Found ",pc," partition(s)"
+		set/"ki2",0
+		repeat/pc
+			calc/"ki2=ki2+1"
+			set/"mn3",mn,ki2
+			set/mn3,ki,",",ki2
+			set/"mn4",mn2,ki2
+			kmsg/"",255255255,"d",ki,",",ki2," -> ",mn4
+		endloop
+	endloop
+endwarp
+// Mount rootfs
+kmsg/"","000255000","Mounting root filesystem..."
+warp
+	if/[KERNEL_INPUT_root == ""]
+		PANIC/"root parameter not specified"
+	endif
+	// resolve root parameter
+	resolvedev/KERNEL_INPUT_root
+	getitem/"dl",1/"d"
+	cpdisk/d,1/"dbin"
+	_listpart/dbin/"pt","pts","ptd"
+	getitem/"dl",2/"p"
+	getitem/"ptd",p/"rootfs"
+	kmsg/"","000255000","Done."
+	_ls/"/sbin",rootfs/"ftypes","fnames","fdata"
+	getlistlength/"fnames"/"fcount"
+	set/"fd",""
+	set/"i",0
+	repeat/fcount
+		calc/"i=i+1"
+		getitem/"fnames",i/"fn"
+		if/[fn == "init"]
+			getitem/"fdata",i/"fd"
+		endif
+	endloop
+endwarp
+if/[fd != ""]
+	kmsg/"","000255000","Executing /sbin/init"
+	set/"$ps",1
+	kmsg/"","000255000","Assigned PID 1"
+	_emc/fd,1
+endif
+PANIC/"Attempted to kill init!"
