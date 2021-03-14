@@ -271,7 +271,9 @@ linkdef/"_set"
 		endif
 	endwarp
 }
-linkdef/"_envupdate"
+// Some functions can't use linkdef yet...
+// PLEASE TELL US IF SMC COMPUTER 5.0 IS ALREADY RELEASED
+define/"_envupdate"
 {
 	warp
 		// _envupdate
@@ -576,8 +578,6 @@ linkdef/"_if"
 		endif
 	endwarp
 }
-// Some functions can't use linkdef yet...
-// PLEASE TELL US IF SMC COMPUTER 5.0 IS ALREADY RELEASED
 define/"_runcommand"
 {
 	getitem/"command",1/"opcode"
