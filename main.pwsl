@@ -19,7 +19,7 @@
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 // Functions
-define/"kmsg"
+linkdef/"kmsg"
 {
 	warp
 		// kmsg/[source],[color],[message],[message],...
@@ -64,7 +64,7 @@ define/"kmsg"
 		print/\n
 	endwarp
 }
-define/"PANIC"
+linkdef/"PANIC"
 {
 	// PANIC/[error description]
 	warp
@@ -81,7 +81,7 @@ define/"PANIC"
 		wait/1000
 	endloop
 }
-define/"_listpart"
+linkdef/"_listpart"
 {
 	warp
 		// _listpart/[partition table image]/[output list - names],[output list - sizes],[output list - data]
@@ -109,7 +109,7 @@ define/"_listpart"
 		endloop
 	endwarp
 }
-define/"resolvedev"
+linkdef/"resolvedev"
 {
 	warp
 		// resolvedev/[path]
@@ -131,7 +131,7 @@ define/"resolvedev"
 		append/dlt/"dl"
 	endwarp
 }
-define/"_ls"
+linkdef/"_ls"
 {
 	warp
 		// _ls/[fs image]/[output list - types],[output list - names],[output list - data]
@@ -178,7 +178,7 @@ define/"_ls"
 		endloop
 	endwarp
 }
-define/"_fixpath"
+linkdef/"_fixpath"
 {
 	warp
 		// _fixpath/[path]/[output variable]
@@ -237,7 +237,7 @@ define/"_fixpath"
 		set/"path",cur
 	endwarp
 }
-define/"_set"
+linkdef/"_set"
 {
 	warp
 		// _set/[var name],[value]
@@ -271,7 +271,7 @@ define/"_set"
 		endif
 	endwarp
 }
-define/"_envupdate"
+linkdef/"_envupdate"
 {
 	warp
 		// _envupdate
@@ -299,7 +299,7 @@ define/"_envupdate"
 		_set/"%pid",pid
 	endwarp
 }
-define/"skip_loop"
+linkdef/"skip_loop"
 {
 	warp
 		set/"si",res1/"pos",0
@@ -318,7 +318,7 @@ define/"skip_loop"
 		endloop
 	endwarp
 }
-define/"skip_if"
+linkdef/"skip_if"
 {
 	warp
 		set/"si",res1/"pos",1
@@ -337,7 +337,7 @@ define/"skip_if"
 		endloop
 	endwarp
 }
-define/"_if"
+linkdef/"_if"
 {
 	warp
 		// _if/[global? 1/0],[global custom ID]
@@ -576,6 +576,8 @@ define/"_if"
 		endif
 	endwarp
 }
+// Some functions can't use linkdef yet...
+// PLEASE TELL US IF SMC COMPUTER 5.0 IS ALREADY RELEASED
 define/"_runcommand"
 {
 	getitem/"command",1/"opcode"
