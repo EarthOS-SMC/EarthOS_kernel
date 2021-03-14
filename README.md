@@ -22,3 +22,8 @@ To build the kernel,
 
 
 The binary will be saved in the `image` file.
+
+## Reduce output
+
+You can reduce the output by putting `1` in the `reduce` file:
+`echo 1 > reduce`
