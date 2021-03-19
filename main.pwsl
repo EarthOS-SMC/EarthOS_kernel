@@ -271,9 +271,7 @@ linkdef/"_set"
 		endif
 	endwarp
 }
-// Some functions can't use linkdef yet...
-// PLEASE TELL US IF SMC COMPUTER 5.0 IS ALREADY RELEASED
-define/"_envupdate"
+linkdef/"_envupdate"
 {
 	warp
 		// _envupdate
@@ -578,7 +576,7 @@ linkdef/"_if"
 		endif
 	endwarp
 }
-define/"_runcommand"
+linkdef/"_runcommand"
 {
 	getitem/"command",1/"opcode"
 	// Uncomment if needed for debugging:
@@ -1226,7 +1224,7 @@ define/"_runcommand"
 		kmsg/msgp,255255000,"unknown opcode ",opcode
 	endif
 }
-define/"_emc"
+linkdef/"_emc"
 {
 	warp
 		// _emc/[binary],[pid]
