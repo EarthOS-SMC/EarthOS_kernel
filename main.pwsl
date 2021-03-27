@@ -1379,7 +1379,6 @@ linkdef/"_emc","emc"
 		set/"si",0
 		while/[si < slen]
 			calc/"si=si+1"
-			getitem/"script",si/"item"
 			_envupdate
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"res1",si2
