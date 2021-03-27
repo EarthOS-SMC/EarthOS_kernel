@@ -1543,7 +1543,7 @@ linkdef/"_runcommand"
 	endif
 }
 // --- END EMC instructions ---
-linkdef/"_emc"
+linkdef/"_emc","emc"
 {
 	warp
 		// _emc/[binary],[pid]
@@ -1663,23 +1663,36 @@ warp
 	_listpart/dbin/"pt","pts","ptd"
 	getitem/"dl",2/"p"
 	getitem/"ptd",p/"rootfs"
-	kmsg/"","000255000","Done."
-	_ls/"/sbin",rootfs/"ftypes","fnames","fdata"
-	getlistlength/"fnames"/"fcount"
-	set/"fd",""
+	// Verify rootfs
+	kmsg/"","000255000","Verifying root filesystem..."
+	// reqdirs is a list of required directories in /
+	setlist/"reqdirs"/"dev","sys"
+	_ls/"/",rootfs/"ftypes","fnames","fdata"
+	getlistlength/"reqdirs"/"len"
 	set/"i",0
-	repeat/fcount
+	repeat/len
 		calc/"i=i+1"
-		getitem/"fnames",i/"fn"
-		if/[fn == "init"]
-			getitem/"fdata",i/"fd"
+		getitem/"reqdirs",i/"it"
+		getindex/"fnames",it/"ix"
+		if/[ix == 0]
+			set/"it","/",it,": No such file or directory"
+			PANIC/it
 		endif
 	endloop
-endwarp
-if/[fd != ""]
+	// Start init
 	kmsg/"","000255000","Executing /sbin/init"
+	_ls/"/sbin",rootfs/"ftypes","fnames","fdata"
+	getlistlength/"fnames"/"fcount"
+	getindex/"fnames","init"/"ix"
+	if/[ix == 0]
+		PANIC/"/sbin/init: No such file or directory"
+	else
+		getitem/"fdata",ix/"fd"
+	endif
 	set/"$ps",1
 	kmsg/"","000255000","Assigned PID 1"
-	_emc/fd,1
-endif
+endwarp
+//_emc/fd,1
+source/tmp_lib_emc/fd,1
+// Panic after init stops
 PANIC/"Attempted to kill init!"
