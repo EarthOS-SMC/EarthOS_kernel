@@ -637,14 +637,14 @@ linkdef/"fileop"
 	getindex/"fnames",gname/"ix"
 }
 // --- START EMC instructions ---
-linkdef/"emc0"
+linkdef/"emc0","emc0"
 {
 	// Exit.
 	// 0
 	getlistlength/"script"/"si"
 	set/"res1",si
 }
-linkdef/"emc1"
+linkdef/"emc1","emc1"
 {
 	// Number: Go forward a number of lines.
 	// !Number: Jump to a line.
@@ -666,7 +666,7 @@ linkdef/"emc1"
 		calc/"si=si+in2"
 	endif
 }
-linkdef/"emc2"
+linkdef/"emc2","emc2"
 {
 	// Repeat loop.
 	// 2/[count]
@@ -680,7 +680,7 @@ linkdef/"emc2"
 		append/in/"loops-max"
 	endif
 }
-linkdef/"emc3"
+linkdef/"emc3","emc3"
 {
 	// The end of the last loop.
 	// 3
@@ -716,24 +716,24 @@ linkdef/"emc3"
 		endif
 	endif
 }
-linkdef/"emc4"
+linkdef/"emc4","emc4"
 {
 	// If.
 	// 4/<condition...>
 	_if
 }
-//linkdef/"emc5"
+//linkdef/"emc5","emc5"
 //{
 	// End if.
 	// 5
 //}
-linkdef/"emc6"
+linkdef/"emc6","emc6"
 {
 	// Else.
 	// 6
 	skip_if
 }
-linkdef/"emc7"
+linkdef/"emc7","emc7"
 {
 	// While loop.
 	// 7/<condition ...>
@@ -746,15 +746,15 @@ linkdef/"emc7"
 		skip_loop
 	endif
 }
-//linkdef/"emc8"
+//linkdef/"emc8","emc8"
 //{
 	// Reserved
 //}
-//linkdef/"emc9"
+//linkdef/"emc9","emc9"
 //{
 	// Reserved
 //}
-linkdef/"emcA"
+linkdef/"emcA","emcA"
 {
 	// Print.
 	// A/[string]/[bold],[italic],[underlined]
@@ -769,7 +769,7 @@ linkdef/"emcA"
 		print/\bin1,\iin2,\uin3,\cpcol,in,\b0,\i0,\u0
 	endif
 }
-linkdef/"emcB"
+linkdef/"emcB","emcB"
 {
 	// Ask and save to variable in input 2 of argument 1.
 	// B/[string],[variable]
@@ -781,7 +781,7 @@ linkdef/"emcB"
 	warp
 	_set/in2,emctmp
 }
-linkdef/"emcC"
+linkdef/"emcC","emcC"
 {
 	// Wait for a(ny) key to be pressed.
 	// Input 1 of argument 1 is the key.
@@ -790,21 +790,21 @@ linkdef/"emcC"
 	getitem/"argument1",1/"in"
 	keywait/in
 }
-linkdef/"emcD"
+linkdef/"emcD","emcD"
 {
 	// Clear the screen.
 	// D
 	// This needs more work
 	clear
 }
-linkdef/"emcE"
+linkdef/"emcE","emcE"
 {
 	// Print a newline.
 	// E
 	// This needs more work
 	print/\n
 }
-linkdef/"emcF"
+linkdef/"emcF","emcF"
 {
 	// Operations.
 	// F/[operation ID(s)]/[target variable(s)]/[inputs]/[scale]
@@ -854,7 +854,7 @@ linkdef/"emcF"
 		_set/in,temp2
 	endloop
 }
-linkdef/"emc10"
+linkdef/"emc10","emc10"
 {
 	// Set variable(s) to value(s).
 	// 10/[var name],[value]/[var name],[value]/...
@@ -876,7 +876,7 @@ linkdef/"emc10"
 		_set/in,temp
 	endloop
 }
-linkdef/"emc11"
+linkdef/"emc11","emc11"
 {
 	// Round a value and write the result into variable(s).
 	// 11/[value],[number of digits]/[variable(s)]
@@ -891,7 +891,7 @@ linkdef/"emc11"
 		_set/in,temp2
 	endloop
 }
-linkdef/"emc12"
+linkdef/"emc12","emc12"
 {
 	// Get letter of a string and save it in variable(s).
 	// 12/[string],[letter]/[variable(s)]
@@ -906,7 +906,7 @@ linkdef/"emc12"
 		_set/in,temp2
 	endloop
 }
-linkdef/"emc13"
+linkdef/"emc13","emc13"
 {
 	// Get length of a string and save it in variable(s).
 	// 13/[string]/[variable(s)]
@@ -920,7 +920,7 @@ linkdef/"emc13"
 		_set/in,temp2
 	endloop
 }
-linkdef/"emc14"
+linkdef/"emc14","emc14"
 {
 	// Setup list(s).
 	// 14/[list name(s)]/[items]
@@ -947,7 +947,7 @@ linkdef/"emc14"
 		replace/ix,temp2/"listc"
 	endloop
 }
-linkdef/"emc15"
+linkdef/"emc15","emc15"
 {
 	// Append to list.
 	// 15/[string]/[list name]
@@ -974,7 +974,7 @@ linkdef/"emc15"
 		append/it/"listc"
 	endif
 }
-linkdef/"emc16"
+linkdef/"emc16","emc16"
 {
 	// Replace item in list.
 	// 16/[item],[string]/[list name]
@@ -1002,7 +1002,7 @@ linkdef/"emc16"
 		append/""/"listc"
 	endif
 }
-linkdef/"emc17"
+linkdef/"emc17","emc17"
 {
 	// Insert item to list.
 	// 17/[item],[string]/[list name]
@@ -1031,7 +1031,7 @@ linkdef/"emc17"
 		append/it/"listc"
 	endif
 }
-linkdef/"emc18"
+linkdef/"emc18","emc18"
 {
 	// Get item from list.
 	// 18/[list name],[item]/[variable(s)]
@@ -1049,7 +1049,7 @@ linkdef/"emc18"
 		_set/in,temp2
 	endloop
 }
-linkdef/"emc19"
+linkdef/"emc19","emc19"
 {
 	// Get length of list.
 	// 19/[list name]/[variable(s)]
@@ -1066,15 +1066,15 @@ linkdef/"emc19"
 		_set/in,temp2
 	endloop
 }
-//linkdef/"emc1A"
+//linkdef/"emc1A","emc1A"
 //{
 	// Missing
 //}
-//linkdef/"emc1B"
+//linkdef/"emc1B","emc1B"
 //{
 	// Missing
 //}
-linkdef/"emc1C"
+linkdef/"emc1C","emc1C"
 {
 	// Get currently pressed keys and save them in a list.
 	// 1C/[list name]
@@ -1098,26 +1098,26 @@ linkdef/"emc1C"
 		append/bin/"listc"
 	endif
 }
-linkdef/"emc1D"
+linkdef/"emc1D","emc1D"
 {
 	// Set background color.
 	// 1D/[RRRGGGBBB]
 	getitem/"argument1",1/"in"
 	bgcolor/in
 }
-//linkdef/"emc1E"
+//linkdef/"emc1E","emc1E"
 //{
 	// Warp.
 	// 1E
 	//
 	// Nothing here, everything is already running in warp mode.
 //}
-//linkdef/"emc1F"
+//linkdef/"emc1F","emc1F"
 //{
 	// End warp.
 	// 1F
 //}
-linkdef/"emc20"
+linkdef/"emc20","emc20"
 {
 	// Wait.
 	// 20/[seconds]
@@ -1126,13 +1126,13 @@ linkdef/"emc20"
 		wait/in
 	warp
 }
-linkdef/"emc21"
+linkdef/"emc21","emc21"
 {
 	// Set text color.
 	// 21/[RRRGGGBBB]
 	getitem/"argument1",1/"pcol"
 }
-linkdef/"emc22"
+linkdef/"emc22","emc22"
 {
 	// Change directory
 	// 22/[path]
@@ -1140,14 +1140,14 @@ linkdef/"emc22"
 	_fixpath/in/"in"
 	set/"pwd",in
 }
-linkdef/"emc23"
+linkdef/"emc23","emc23"
 {
 	// Get current directory.
 	// 23/[output variable]
 	getitem/"argument1",1/"in"
 	_set/in,pwd
 }
-linkdef/"emc24"
+linkdef/"emc24","emc24"
 {
 		// Read file.
 		// 24/[path]/[output list]
@@ -1174,11 +1174,11 @@ linkdef/"emc24"
 			append/file/"listc"
 		endif
 }
-//linkdef/"emc25"
+//linkdef/"emc25","emc25"
 //{
 	// Reserved
 //}
-linkdef/"emc26"
+linkdef/"emc26","emc26"
 {
 	// Beep.
 	// 26/[frequency],[duration in seconds]
@@ -1186,7 +1186,7 @@ linkdef/"emc26"
 	getitem/"argument1",2/"in2"
 	beep/in1,in2
 }
-linkdef/"emc27"
+linkdef/"emc27","emc27"
 {
 	// Remove item from list.
 	// 27/[item]/[list name]
@@ -1213,51 +1213,51 @@ linkdef/"emc27"
 		append/""/"listc"
 	endif
 }
-//linkdef/"emc28"
+//linkdef/"emc28","emc28"
 //{
 	// Reserved
 //}
-//linkdef/"emc29"
+//linkdef/"emc29","emc29"
 //{
 	// Reserved
 //}
-//linkdef/"emc2A"
+//linkdef/"emc2A","emc2A"
 //{
 	// Reserved
 //}
-//linkdef/"emc2B"
+//linkdef/"emc2B","emc2B"
 //{
 	// Reserved
 //}
-//linkdef/"emc2C"
+//linkdef/"emc2C","emc2C"
 //{
 	// Reserved
 //}
-//linkdef/"emc2D"
+//linkdef/"emc2D","emc2D"
 //{
 	// Reserved
 //}
-//linkdef/"emc2E"
+//linkdef/"emc2E","emc2E"
 //{
 	// Reserved
 //}
-//linkdef/"emc2F"
+//linkdef/"emc2F","emc2F"
 //{
 	// Reserved
 //}
-//linkdef/"emc30"
+//linkdef/"emc30","emc30"
 //{
 	// Reserved
 //}
-//linkdef/"emc31"
+//linkdef/"emc31","emc31"
 //{
 	// Reserved
 //}
-//linkdef/"emc32"
+//linkdef/"emc32","emc32"
 //{
 	// Reserved
 //}
-linkdef/"emc33"
+linkdef/"emc33","emc33"
 {
 	// Convert binary to list.
 	// 33/[binary]/[list name]
@@ -1280,7 +1280,7 @@ linkdef/"emc33"
 		append/in1/"listc"
 	endif
 }
-linkdef/"emc34"
+linkdef/"emc34","emc34"
 {
 	// Convert list to binary.
 	// 34/[list name]/[variable name]
@@ -1290,7 +1290,7 @@ linkdef/"emc34"
 	getitem/"listc",ix/"it"
 	_set/in2,it
 }
-linkdef/"emc35"
+linkdef/"emc35","emc35"
 {
 	// Read variable.
 	// 35/[variable name]/[output variable name]
@@ -1306,7 +1306,7 @@ linkdef/"emc35"
 	endif
 	_set/in2,it
 }
-linkdef/"emc36"
+linkdef/"emc36","emc36"
 {
 	// Get index of an item.
 	// 36/[list name],[string]/[output variable name]
@@ -1319,7 +1319,7 @@ linkdef/"emc36"
 	getindex/"list",in2/"it"
 	_set/in3,it
 }
-linkdef/"emc37"
+linkdef/"emc37","emc37"
 {
 	// Interpret SMC instruction.
 	// 37/[input list name],[index],[var names list],[var values list],[global var names list],[global var values list]/[index2 var name],[command list name],[argument lists prefix]
@@ -1343,7 +1343,7 @@ linkdef/"emc37"
 	set/"msgp","pid ",pid
 	kmsg/msgp,255255000,"Virtualization isn't supported yet!"
 }
-linkdef/"emc38"
+linkdef/"emc38","emc38"
 {
 	// Calculate absolute value.
 	// 38/[input]/[output variable]
@@ -1357,190 +1357,9 @@ linkdef/"_runcommand"
 	getitem/"command",1/"opcode"
 	// Uncomment if needed for debugging:
 	//print/si,": ",opcode,\n
-	set/"known",1
-	if/[opcode == "0"]
-		emc0
-	else
-		if/[opcode == "1"]
-			emc1
-		else
-			if/[opcode == "2"]
-				emc2
-			else
-				if/[opcode == "3"]
-					emc3
-				else
-					if/[opcode == "4"]
-						emc4
-					else
-						if/[opcode == "5"]
-							//emc5
-						else
-							if/[opcode == "6"]
-								emc6
-							else
-								if/[opcode == "7"]
-									emc7
-								else
-									if/[opcode == "A"]
-										emcA
-									else
-										if/[opcode == "B"]
-											emcB
-										else
-											if/[opcode == "C"]
-												emcC
-											else
-												if/[opcode == "D"]
-													emcD
-												else
-													if/[opcode == "E"]
-														emcE
-													else
-														if/[opcode == "F"]
-															emcF
-														else
-															if/[opcode == "10"]
-																emc10
-															else
-																if/[opcode == "11"]
-																	emc11
-																else
-																	if/[opcode == "12"]
-																		emc12
-																	else
-																		if/[opcode == "13"]
-																			emc13
-																		else
-																			if/[opcode == "14"]
-																				emc14
-																			else
-																				if/[opcode == "15"]
-																					emc15
-																				else
-																					if/[opcode == "16"]
-																						emc16
-																					else
-																						if/[opcode == "17"]
-																							emc17
-																						else
-																							if/[opcode == "18"]
-																								emc18
-																							else
-																								if/[opcode == "19"]
-																									emc19
-																								// 1A is missing
-																								// 1B is missing
-																								else
-																									if/[opcode == "1C"]
-																										emc1C
-																									else
-																										if/[opcode == "1D"]
-																											emc1D
-																										else
-																											if/[opcode == "1E"]
-																												//emc1E
-																											else
-																												if/[opcode == "1F"]
-																													//emc1F
-																												else
-																													if/[opcode == "20"]
-																														emc20
-																													else
-																														if/[opcode == "21"]
-																															emc21
-																														else
-																															if/[opcode == "22"]
-																																emc22
-																															else
-																																if/[opcode == "23"]
-																																	emc23
-																																else
-																																	if/[opcode == "24"]
-																																		emc24
-																																	// 25 is RESERVED
-																																	else
-																																		if/[opcode == "26"]
-																																			emc26
-																																		else
-																																			if/[opcode == "27"]
-																																				emc27
-																																			// 28 is RESERVED
-																																			// 29 is RESERVED
-																																			// 2A is RESERVED
-																																			// 2B is RESERVED
-																																			// 2C is RESERVED
-																																			// 2D is RESERVED
-																																			// 2E is RESERVED
-																																			// 2F is RESERVED
-																																			// 30 is RESERVED
-																																			// 31 is RESERVED
-																																			// 32 is RESERVED
-																																			else
-																																				if/[opcode == "33"]
-																																					emc33
-																																				else
-																																					if/[opcode == "34"]
-																																						emc34
-																																					else
-																																						if/[opcode == "35"]
-																																							emc35
-																																						else
-																																							if/[opcode == "36"]
-																																								emc36
-																																							else
-																																								if/[opcode == "37"]
-																																									emc37
-																																								else
-																																									if/[opcode == "38"]
-																																										emc38
-																																									else
-																																										set/"known",0
-																																									endif
-																																								endif
-																																							endif
-																																						endif
-																																					endif
-																																				endif
-																																			endif
-																																		endif
-																																	endif
-																																endif
-																															endif
-																														endif
-																													endif
-																												endif
-																											endif
-																										endif
-																									endif
-																								endif
-																							endif
-																						endif
-																					endif
-																				endif
-																			endif
-																		endif
-																	endif
-																endif
-															endif
-														endif
-													endif
-												endif
-											endif
-										endif
-									endif
-								endif
-							endif
-						endif
-					endif
-				endif
-			endif
-		endif
-	endif
-	if/[known == 0]
-		set/"msgp","pid ",pid
-		kmsg/msgp,255255000,"unknown opcode ",opcode
-	endif
+	set/"emcop","tmp_lib_emc",opcode
+	readvar/emcop/"emcop"
+	source/emcop
 }
 // --- END EMC instructions ---
 linkdef/"_emc","emc"
