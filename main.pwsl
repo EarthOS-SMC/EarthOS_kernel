@@ -281,19 +281,6 @@ linkdef/"_set"
 		endif
 	endwarp
 }
-linkdef/"_createvar"
-{
-	// _createvar/[name]
-	getitem/"arg_1",1/"varn"
-	getletter/varn,1/"let"
-	if/[let == "$"]
-		append/varn/"gl_vn"
-		append/""/"gl_vv"
-	else
-		append/varn/"vn"
-		append/""/"vv"
-	endif
-}
 linkdef/"_envsetup"
 {
 	warp
@@ -305,43 +292,45 @@ linkdef/"_envsetup"
 		// NOTE for environment variables (read before adding your own variables):
 		// I had to implement a quicker updating. The variables are
 		// initialized in this function and _envupdate quickly overwrites the entries.
-		_createvar/"%user"
-		_createvar/"%time"
-		_createvar/"%fps"
-		_createvar/"%uptime"
-		_createvar/"%kuptime"
-		_createvar/"%cpu"
-		_createvar/"%ps"
-		_createvar/"%pid"
+		append/"%user"/"vn"
+		append/"%time"/"vn"
+		append/"%fps"/"vn"
+		append/"%uptime"/"vn"
+		append/"%kuptime"/"vn"
+		append/"%cpu"/"vn"
+		append/"%ps"/"vn"
+		append/"%pid"/"vn"
+		// Always change the number of variables below!
+		repeat/8
+			append/""/"vv"
+		endloop
 	endwarp
 }
 linkdef/"_envupdate"
 {
-	warp
-		// _envupdate
-		// (no arguments)
-		// This function was ported from SMC Computer.
-		// It has some EarthOS-specific additions.
-		//
-		// Username
-		replace/1,%user/"vv"
-		// Timestamp (seconds since 2000)
-		replace/2,%time/"vv"
-		// FPS
-		replace/3,%fps/"vv"
-		// BIOS Uptime (in seconds)
-		replace/4,%uptime/"vv"
-		// Kernel uptime (in seconds)
-		calc/"tmp=%time-$kstart"
-		replace/5,tmp/"vv"
-		// CPU usage (in %) - depends on FPS
-		replace/6,%cpu/"vv"
-		// Number of running processes
-		getlistlength/"processes"/"tmp"
-		replace/7,tmp/"vv"
-		// Process ID
-		replace/8,pid/"vv"
-	endwarp
+	// _envupdate
+	// (no arguments)
+	// This function was ported from SMC Computer.
+	// It has some EarthOS-specific additions.
+	//
+	// Username
+	replace/1,%user/"vv"
+	// Timestamp (seconds since 2000)
+	replace/2,%time/"vv"
+	// FPS
+	replace/3,%fps/"vv"
+	// BIOS Uptime (in seconds)
+	replace/4,%uptime/"vv"
+	// Kernel uptime (in seconds)
+	calc/"tmp=%time-$kstart"
+	replace/5,tmp/"vv"
+	// CPU usage (in %) - depends on FPS
+	replace/6,%cpu/"vv"
+	// Number of running processes
+	getlistlength/"processes"/"tmp"
+	replace/7,tmp/"vv"
+	// Process ID
+	replace/8,pid/"vv"
 }
 linkdef/"skip_loop"
 {
@@ -1365,7 +1354,7 @@ linkdef/"_runcommand"
 linkdef/"_emc","emc"
 {
 	warp
-		// _emc/[binary],[pid]
+		// _emc/[binary],[pid]/[_envsetup],[_envupdate],[_runcommand]
 		//
 		// It's better to run this function
 		// without screen refresh (warp)
