@@ -19,7 +19,7 @@
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 // Functions
-linkdef/"kmsg"
+linkdef/"kmsg","kmsg","global"
 {
 	warp
 		// kmsg/[source],[color],[message],[message],...
@@ -64,7 +64,7 @@ linkdef/"kmsg"
 		print/\n
 	endwarp
 }
-linkdef/"PANIC"
+linkdef/"PANIC","pan","global"
 {
 	// PANIC/[error description]
 	warp
@@ -81,7 +81,7 @@ linkdef/"PANIC"
 		wait/1000
 	endloop
 }
-linkdef/"_listpart"
+linkdef/"_listpart","lpt","global"
 {
 	warp
 		// _listpart/[partition table image]/[output list - names],[output list - sizes],[output list - data]
@@ -109,7 +109,7 @@ linkdef/"_listpart"
 		endloop
 	endwarp
 }
-linkdef/"resolvedev"
+linkdef/"resolvedev","rsd","global"
 {
 	warp
 		// resolvedev/[path]
@@ -131,10 +131,10 @@ linkdef/"resolvedev"
 		append/dlt/"dl"
 	endwarp
 }
-linkdef/"_ls"
+linkdef/"_ls","ls","global"
 {
 	warp
-		// _ls/[fs image]/[output list - types],[output list - names],[output list - data]
+		// _ls/[path],[fs image]/[output list - types],[output list - names],[output list - data]
 		getitem/"arg_1",1/"path"
 		getitem/"arg_1",2/"fs"
 		getitem/"arg_2",1/"olt"
@@ -144,19 +144,24 @@ linkdef/"_ls"
 		// Convert binary
 		bintolist/fs/"fsl"
 		getlistlength/"fsl"/"fsll"
-		set/"i",1
-		//     ^^^ This is 1 because the first item is the filesystem format (FSSC2 in this case)
+		set/"i",1/"loop",1
+		//      ^ This is 1 because the first item is the filesystem format (FSSC2 in this case)
 		while/[i < fsll]
-			// Definition path
-			calc/"i=i+1"
-			getitem/"fsl",i/"def"
-			//print/"def=",def,\n
-			// Number of files
-			calc/"i=i+1"
-			getitem/"fsl",i/"c"
-			//print/"c=",c,\n
-			// Get files under current definition
-			repeat/c
+			if/[loop == 1]
+				// Definition path
+				calc/"i=i+1"
+				getitem/"fsl",i/"def"
+				//print/"def=",def,\n
+				// Number of files
+				calc/"i=i+1"
+				getitem/"fsl",i/"c"
+				//print/"c=",c,\n
+				if/[c > 0]
+					set/"loop",0/"ci",0
+				endif
+			else
+				// Get files under current definition
+				calc/"ci=ci+1"
 				// Type - file or folder
 				calc/"i=i+1"
 				getitem/"fsl",i/"ft"
@@ -174,11 +179,14 @@ linkdef/"_ls"
 					append/fn/oln
 					append/fd/old
 				endif
-			endloop
+				if/[ci >= c]
+					set/"loop",1
+				endif
+			endif
 		endloop
 	endwarp
 }
-linkdef/"_fixpath"
+linkdef/"_fixpath","fixpt","global"
 {
 	warp
 		// _fixpath/[path]/[output variable]
@@ -247,7 +255,7 @@ linkdef/"_fixpath"
 		set/out,cur
 	endwarp
 }
-linkdef/"_set"
+linkdef/"_set","set","global"
 {
 	warp
 		// _set/[var name],[value]
@@ -281,7 +289,7 @@ linkdef/"_set"
 		endif
 	endwarp
 }
-linkdef/"_envsetup"
+linkdef/"_envsetup","envsetup","global"
 {
 	warp
 		// _envsetup
@@ -306,12 +314,14 @@ linkdef/"_envsetup"
 		endloop
 	endwarp
 }
-linkdef/"_envupdate"
+linkdef/"_envupdate","envupdate","global"
 {
 	// _envupdate
 	// (no arguments)
 	// This function was ported from SMC Computer.
 	// It has some EarthOS-specific additions.
+	//
+	// These variables must be created before calling this function!
 	//
 	// Username
 	replace/1,%user/"vv"
@@ -332,7 +342,7 @@ linkdef/"_envupdate"
 	// Process ID
 	replace/8,pid/"vv"
 }
-linkdef/"skip_loop"
+linkdef/"skip_loop","skl","global"
 {
 	warp
 		set/"si",res1/"pos",0
@@ -351,7 +361,7 @@ linkdef/"skip_loop"
 		endloop
 	endwarp
 }
-linkdef/"skip_if"
+linkdef/"skip_if","ski","global"
 {
 	warp
 		set/"si",res1/"pos",1
@@ -370,7 +380,7 @@ linkdef/"skip_if"
 		endloop
 	endwarp
 }
-linkdef/"_if"
+linkdef/"_if","if","global"
 {
 	warp
 		// _if/[global? 1/0],[global custom ID]
@@ -578,7 +588,6 @@ linkdef/"_if"
 		endloop
 		if/[gl? == 0] and [go == 0]
 			set/"si",res1/"pos",1/"c",0
-			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			while/[c == 0]
 				calc/"si=si+1"
 				smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
@@ -609,31 +618,29 @@ linkdef/"_if"
 		endif
 	endwarp
 }
-// Linkdefs are still unstable
-// This function was causing process crashing, so I used define instead
-linkdef/"fileop"
+linkdef/"fileop","fop","global"
 {
 	// fileop/[path]
 	getitem/"arg_1",1/"in"
-	_fixpath/in
+	source/$tmp_lib_fixpt/in/"path"
 	// The last item is our file name
 	getlistlength/"parts"/"len"
 	getitem/"parts",len/"gname"
 	set/"path",in,"/.."
 	// ^ This will make _fixpath ignore the last part of the path
-	_fixpath/path/"path"
-	_ls/path,rootfs/"ftypes","fnames","fdata"
+	source/$tmp_lib_fixpt/path/"path"
+	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata"
 	getindex/"fnames",gname/"ix"
 }
 // --- START EMC instructions ---
-linkdef/"emc0","emc0"
+linkdef/"emc0","emc0","global"
 {
 	// Exit.
 	// 0
 	getlistlength/"script"/"si"
 	set/"res1",si
 }
-linkdef/"emc1","emc1"
+linkdef/"emc1","emc1","global"
 {
 	// Number: Go forward a number of lines.
 	// !Number: Jump to a line.
@@ -655,12 +662,12 @@ linkdef/"emc1","emc1"
 		calc/"si=si+in2"
 	endif
 }
-linkdef/"emc2","emc2"
+linkdef/"emc2","emc2","global"
 {
 	// Repeat loop.
 	// 2/[count]
 	if/[in <= 0]
-		skip_loop
+		source/$tmp_lib_skl
 		set/"opcode",""
 	else
 		append/1/"loops-i"
@@ -669,7 +676,7 @@ linkdef/"emc2","emc2"
 		append/in/"loops-max"
 	endif
 }
-linkdef/"emc3","emc3"
+linkdef/"emc3","emc3","global"
 {
 	// The end of the last loop.
 	// 3
@@ -679,7 +686,7 @@ linkdef/"emc3","emc3"
 	if/[lit == 0]
 		// End of while loop.
 		smc_getarg/"script",lit2,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
-		_if/1,lit2
+		source/$tmp_lib_if/1,lit2
 		if/[go == 1]
 			getitem/"loops-id",lil/"si"
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
@@ -695,7 +702,7 @@ linkdef/"emc3","emc3"
 			calc/"new=lit+1"
 			replace/lil,new/"loops-i"
 			getitem/"loops-id",lil/"si"
-			_envupdate
+			source/$tmp_lib_envupdate
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"si",si2/"res1",si
 		else
@@ -705,45 +712,45 @@ linkdef/"emc3","emc3"
 		endif
 	endif
 }
-linkdef/"emc4","emc4"
+linkdef/"emc4","emc4","global"
 {
 	// If.
 	// 4/<condition...>
-	_if
+	source/$tmp_lib_if
 }
 //linkdef/"emc5","emc5"
 //{
 	// End if.
 	// 5
 //}
-linkdef/"emc6","emc6"
+linkdef/"emc6","emc6","global"
 {
 	// Else.
 	// 6
-	skip_if
+	source/$tmp_lib_ski
 }
-linkdef/"emc7","emc7"
+linkdef/"emc7","emc7","global"
 {
 	// While loop.
 	// 7/<condition ...>
-	_if/1,si
+	source/$tmp_lib_if/1,si
 	if/[go == 1]
 		append/0/"loops-i"
 		append/si/"loops-id"
 		append/si/"loops-max"
 	else
-		skip_loop
+		source/$tmp_lib_skl
 	endif
 }
-//linkdef/"emc8","emc8"
+//linkdef/"emc8","emc8","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc9","emc9"
+//linkdef/"emc9","emc9","global"
 //{
 	// Reserved
 //}
-linkdef/"emcA","emcA"
+linkdef/"emcA","emc10","global"
 {
 	// Print.
 	// A/[string]/[bold],[italic],[underlined]
@@ -758,7 +765,7 @@ linkdef/"emcA","emcA"
 		print/\bin1,\iin2,\uin3,\cpcol,in,\b0,\i0,\u0
 	endif
 }
-linkdef/"emcB","emcB"
+linkdef/"emcB","emc11","global"
 {
 	// Ask and save to variable in input 2 of argument 1.
 	// B/[string],[variable]
@@ -768,9 +775,9 @@ linkdef/"emcB","emcB"
 	endwarp
 		read/in1,"emctmp"
 	warp
-	_set/in2,emctmp
+	source/$tmp_lib_set/in2,emctmp
 }
-linkdef/"emcC","emcC"
+linkdef/"emcC","emc12","global"
 {
 	// Wait for a(ny) key to be pressed.
 	// Input 1 of argument 1 is the key.
@@ -779,21 +786,21 @@ linkdef/"emcC","emcC"
 	getitem/"argument1",1/"in"
 	keywait/in
 }
-linkdef/"emcD","emcD"
+linkdef/"emcD","emc13","global"
 {
 	// Clear the screen.
 	// D
 	// This needs more work
 	clear
 }
-linkdef/"emcE","emcE"
+linkdef/"emcE","emc14","global"
 {
 	// Print a newline.
 	// E
 	// This needs more work
 	print/\n
 }
-linkdef/"emcF","emcF"
+linkdef/"emcF","emc15","global"
 {
 	// Operations.
 	// F/[operation ID(s)]/[target variable(s)]/[inputs]/[scale]
@@ -840,10 +847,10 @@ linkdef/"emcF","emcF"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument2",i2/"in"
-		_set/in,temp2
+		source/$tmp_lib_set/in,temp2
 	endloop
 }
-linkdef/"emc10","emc10"
+linkdef/"emc10","emc16","global"
 {
 	// Set variable(s) to value(s).
 	// 10/[var name],[value]/[var name],[value]/...
@@ -862,10 +869,10 @@ linkdef/"emc10","emc10"
 			set/"temp",temp,in
 		endloop
 		getitem/an,1/"in"
-		_set/in,temp
+		source/$tmp_lib_set/in,temp
 	endloop
 }
-linkdef/"emc11","emc11"
+linkdef/"emc11","emc17","global"
 {
 	// Round a value and write the result into variable(s).
 	// 11/[value],[number of digits]/[variable(s)]
@@ -877,10 +884,10 @@ linkdef/"emc11","emc11"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument2",i2/"in"
-		_set/in,temp2
+		source/$tmp_lib_set/in,temp2
 	endloop
 }
-linkdef/"emc12","emc12"
+linkdef/"emc12","emc18","global"
 {
 	// Get letter of a string and save it in variable(s).
 	// 12/[string],[letter]/[variable(s)]
@@ -892,10 +899,10 @@ linkdef/"emc12","emc12"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument2",i2/"in"
-		_set/in,temp2
+		source/$tmp_lib_set/in,temp2
 	endloop
 }
-linkdef/"emc13","emc13"
+linkdef/"emc13","emc19","global"
 {
 	// Get length of a string and save it in variable(s).
 	// 13/[string]/[variable(s)]
@@ -906,10 +913,10 @@ linkdef/"emc13","emc13"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument2",i2/"in"
-		_set/in,temp2
+		source/$tmp_lib_set/in,temp2
 	endloop
 }
-linkdef/"emc14","emc14"
+linkdef/"emc14","emc20","global"
 {
 	// Setup list(s).
 	// 14/[list name(s)]/[items]
@@ -936,7 +943,7 @@ linkdef/"emc14","emc14"
 		replace/ix,temp2/"listc"
 	endloop
 }
-linkdef/"emc15","emc15"
+linkdef/"emc15","emc21","global"
 {
 	// Append to list.
 	// 15/[string]/[list name]
@@ -963,7 +970,7 @@ linkdef/"emc15","emc15"
 		append/it/"listc"
 	endif
 }
-linkdef/"emc16","emc16"
+linkdef/"emc16","emc22","global"
 {
 	// Replace item in list.
 	// 16/[item],[string]/[list name]
@@ -991,7 +998,7 @@ linkdef/"emc16","emc16"
 		append/""/"listc"
 	endif
 }
-linkdef/"emc17","emc17"
+linkdef/"emc17","emc23","global"
 {
 	// Insert item to list.
 	// 17/[item],[string]/[list name]
@@ -1020,7 +1027,7 @@ linkdef/"emc17","emc17"
 		append/it/"listc"
 	endif
 }
-linkdef/"emc18","emc18"
+linkdef/"emc18","emc24","global"
 {
 	// Get item from list.
 	// 18/[list name],[item]/[variable(s)]
@@ -1035,10 +1042,10 @@ linkdef/"emc18","emc18"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument2",i2/"in"
-		_set/in,temp2
+		source/$tmp_lib_set/in,temp2
 	endloop
 }
-linkdef/"emc19","emc19"
+linkdef/"emc19","emc25","global"
 {
 	// Get length of list.
 	// 19/[list name]/[variable(s)]
@@ -1052,18 +1059,18 @@ linkdef/"emc19","emc19"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument2",i2/"in"
-		_set/in,temp2
+		source/$tmp_lib_set/in,temp2
 	endloop
 }
-//linkdef/"emc1A","emc1A"
+//linkdef/"emc1A","emc26","global"
 //{
 	// Missing
 //}
-//linkdef/"emc1B","emc1B"
+//linkdef/"emc1B","emc27","global"
 //{
 	// Missing
 //}
-linkdef/"emc1C","emc1C"
+linkdef/"emc1C","emc28","global"
 {
 	// Get currently pressed keys and save them in a list.
 	// 1C/[list name]
@@ -1087,26 +1094,26 @@ linkdef/"emc1C","emc1C"
 		append/bin/"listc"
 	endif
 }
-linkdef/"emc1D","emc1D"
+linkdef/"emc1D","emc29","global"
 {
 	// Set background color.
 	// 1D/[RRRGGGBBB]
 	getitem/"argument1",1/"in"
 	bgcolor/in
 }
-//linkdef/"emc1E","emc1E"
+//linkdef/"emc1E","emc30","global"
 //{
 	// Warp.
 	// 1E
 	//
 	// Nothing here, everything is already running in warp mode.
 //}
-//linkdef/"emc1F","emc1F"
+//linkdef/"emc1F","emc31","global"
 //{
 	// End warp.
 	// 1F
 //}
-linkdef/"emc20","emc20"
+linkdef/"emc20","emc32","global"
 {
 	// Wait.
 	// 20/[seconds]
@@ -1115,34 +1122,37 @@ linkdef/"emc20","emc20"
 		wait/in
 	warp
 }
-linkdef/"emc21","emc21"
+linkdef/"emc21","emc33","global"
 {
 	// Set text color.
 	// 21/[RRRGGGBBB]
 	getitem/"argument1",1/"pcol"
 }
-linkdef/"emc22","emc22"
+linkdef/"emc22","emc34","global"
 {
 	// Change directory
 	// 22/[path]
 	getitem/"argument1",1/"in"
-	_fixpath/in/"in"
+	source/$tmp_lib_fixpt/in/"in"
 	set/"pwd",in
 }
-linkdef/"emc23","emc23"
+linkdef/"emc23","emc35","global"
 {
 	// Get current directory.
 	// 23/[output variable]
 	getitem/"argument1",1/"in"
-	_set/in,pwd
+	source/$tmp_lib_set/in,pwd
 }
-linkdef/"emc24","emc24"
+linkdef/"emc24","emc36","global"
 {
 		// Read file.
 		// 24/[path]/[output list]
 		getitem/"argument1",1/"in1"
 		getitem/"argument2",1/"in2"
-		fileop/in1
+		// Crash?
+		source/$tmp_lib_fop/in1
+		//fileop/in1
+		// ^ remove this line if that linkdef doesn't cause crashes
 		// We got the file data below
 		getitem/"fdata",ix/"file"
 		// Now, it needs to save it in the list
@@ -1163,11 +1173,11 @@ linkdef/"emc24","emc24"
 			append/file/"listc"
 		endif
 }
-//linkdef/"emc25","emc25"
+//linkdef/"emc25","emc37","global"
 //{
 	// Reserved
 //}
-linkdef/"emc26","emc26"
+linkdef/"emc26","emc38","global"
 {
 	// Beep.
 	// 26/[frequency],[duration in seconds]
@@ -1175,7 +1185,7 @@ linkdef/"emc26","emc26"
 	getitem/"argument1",2/"in2"
 	beep/in1,in2
 }
-linkdef/"emc27","emc27"
+linkdef/"emc27","emc39","global"
 {
 	// Remove item from list.
 	// 27/[item]/[list name]
@@ -1202,51 +1212,51 @@ linkdef/"emc27","emc27"
 		append/""/"listc"
 	endif
 }
-//linkdef/"emc28","emc28"
+//linkdef/"emc28","emc40","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc29","emc29"
+//linkdef/"emc29","emc41","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc2A","emc2A"
+//linkdef/"emc2A","emc42","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc2B","emc2B"
+//linkdef/"emc2B","emc43","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc2C","emc2C"
+//linkdef/"emc2C","emc44","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc2D","emc2D"
+//linkdef/"emc2D","emc45","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc2E","emc2E"
+//linkdef/"emc2E","emc46","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc2F","emc2F"
+//linkdef/"emc2F","emc47","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc30","emc30"
+//linkdef/"emc30","emc48","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc31","emc31"
+//linkdef/"emc31","emc49","global"
 //{
 	// Reserved
 //}
-//linkdef/"emc32","emc32"
+//linkdef/"emc32","emc50","global"
 //{
 	// Reserved
 //}
-linkdef/"emc33","emc33"
+linkdef/"emc33","emc51","global"
 {
 	// Convert binary to list.
 	// 33/[binary]/[list name]
@@ -1269,7 +1279,7 @@ linkdef/"emc33","emc33"
 		append/in1/"listc"
 	endif
 }
-linkdef/"emc34","emc34"
+linkdef/"emc34","emc52","global"
 {
 	// Convert list to binary.
 	// 34/[list name]/[variable name]
@@ -1277,9 +1287,9 @@ linkdef/"emc34","emc34"
 	getitem/"argument2",1/"in2"
 	getindex/"listn",in1/"ix"
 	getitem/"listc",ix/"it"
-	_set/in2,it
+	source/$tmp_lib_set/in2,it
 }
-linkdef/"emc35","emc35"
+linkdef/"emc35","emc53","global"
 {
 	// Read variable.
 	// 35/[variable name]/[output variable name]
@@ -1293,9 +1303,9 @@ linkdef/"emc35","emc35"
 		getindex/"vn",in1/"ix"
 		getitem/"vv",ix/"it"
 	endif
-	_set/in2,it
+	source/$tmp_lib_set/in2,it
 }
-linkdef/"emc36","emc36"
+linkdef/"emc36","emc54","global"
 {
 	// Get index of an item.
 	// 36/[list name],[string]/[output variable name]
@@ -1306,9 +1316,9 @@ linkdef/"emc36","emc36"
 	getitem/"listc",ix/"bin"
 	bintolist/bin/"list"
 	getindex/"list",in2/"it"
-	_set/in3,it
+	source/$tmp_lib_set/in3,it
 }
-linkdef/"emc37","emc37"
+linkdef/"emc37","emc55","global"
 {
 	// Interpret SMC instruction.
 	// 37/[input list name],[index],[var names list],[var values list],[global var names list],[global var values list]/[index2 var name],[command list name],[argument lists prefix]
@@ -1330,31 +1340,39 @@ linkdef/"emc37","emc37"
 	//smc_getarg/"list",in2,"tmpvn","tmpvv","tmpglvn","tmpglvv"/"tmpsi2","cmd","tmparg"
 	//
 	set/"msgp","pid ",pid
-	kmsg/msgp,255255000,"Virtualization isn't supported yet!"
+	source/$tmp_lib_kmsg/msgp,255255000,"Virtualization isn't supported yet!"
 }
-linkdef/"emc38","emc38"
+linkdef/"emc38","emc56","global"
 {
 	// Calculate absolute value.
 	// 38/[input]/[output variable]
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
 	abs/in1/"it"
-	_set/in2,it
+	source/$tmp_lib_set/in2,it
 }
-linkdef/"_runcommand"
+linkdef/"_runcommand","rcmd","global"
 {
 	getitem/"command",1/"opcode"
 	// Uncomment if needed for debugging:
 	//print/si,": ",opcode,\n
-	set/"emcop","tmp_lib_emc",opcode
+	set/"opcode","0x",opcode
+	add/opcode,0/"opcode"
+	set/"emcop","$tmp_lib_emc",opcode
 	readvar/emcop/"emcop"
 	source/emcop
 }
 // --- END EMC instructions ---
-linkdef/"_emc","emc"
+linkdef/"_start","start","global"
+{
+	// _start/[binary]
+	add/$ps,1/"$ps"
+	run/$tmp_lib_emc/fd,$ps
+}
+linkdef/"_emc","emc","global"
 {
 	warp
-		// _emc/[binary],[pid]/[_envsetup],[_envupdate],[_runcommand]
+		// _emc/[binary],[pid]/[_emc],[_envsetup],[_envupdate],[_runcommand],[kmsg],[PANIC],[_listpart],[resolvedev],[_ls],[_fixpath],[_set],[_if],[fileop],[skip_loop],[skip_if],<instructions>
 		//
 		// It's better to run this function
 		// without screen refresh (warp)
@@ -1364,19 +1382,19 @@ linkdef/"_emc","emc"
 		getitem/"arg_1",2/"pid"
 		bintolist/bin/"script"
 		getlistlength/"script"/"slen"
-		_envsetup
+		source/$tmp_lib_envsetup
 		set/"si",0
 		while/[si < slen]
 			calc/"si=si+1"
-			_envupdate
+			source/$tmp_lib_envupdate
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"res1",si2
-			_runcommand
+			source/$tmp_lib_rcmd
 			set/"si",res1
 		endloop
 		if/[si < slen]
 			set/"msgp","pid ",pid
-			kmsg/msgp,255255000,"Crashed for unknown reason!"
+			source/$tmp_lib_kmsg/msgp,255255000,"Crashed for unknown reason!"
 		endif
 	endwarp
 }
@@ -1469,12 +1487,12 @@ warp
 	cpdisk/d,1/"dbin"
 	_listpart/dbin/"pt","pts","ptd"
 	getitem/"dl",2/"p"
-	getitem/"ptd",p/"rootfs"
+	getitem/"ptd",p/"$rootfs"
 	// Verify rootfs
 	kmsg/"","000255000","Verifying root filesystem..."
 	// reqdirs is a list of required directories in /
 	setlist/"reqdirs"/"dev","sys"
-	_ls/"/",rootfs/"ftypes","fnames","fdata"
+	_ls/"/",$rootfs/"ftypes","fnames","fdata"
 	getlistlength/"reqdirs"/"len"
 	set/"i",0
 	repeat/len
@@ -1488,7 +1506,7 @@ warp
 	endloop
 	// Start init
 	kmsg/"","000255000","Executing /sbin/init"
-	_ls/"/sbin",rootfs/"ftypes","fnames","fdata"
+	_ls/"/sbin",$rootfs/"ftypes","fnames","fdata"
 	getlistlength/"fnames"/"fcount"
 	getindex/"fnames","init"/"ix"
 	if/[ix == 0]
@@ -1496,10 +1514,8 @@ warp
 	else
 		getitem/"fdata",ix/"fd"
 	endif
-	set/"$ps",1
-	kmsg/"","000255000","Assigned PID 1"
+	set/"$ps",0
 endwarp
-//_emc/fd,1
-source/tmp_lib_emc/fd,1
+_start/fd
 // Panic after init stops
 PANIC/"Attempted to kill init!"
