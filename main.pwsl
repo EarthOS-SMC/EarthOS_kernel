@@ -64,6 +64,16 @@ linkdef/"kmsg","kmsg","global"
 		print/\n
 	endwarp
 }
+linkdef/"pidkmsg","pidkmsg","global"
+{
+	warp
+		// pidkmsg/[color],[message]
+		getitem/"arg_1",1/"msgc"
+		getitem/"arg_1",2/"msgt"
+		set/"msgp","pid ",pid
+		kmsg/msgp,msgc,msgt
+	endwarp
+}
 linkdef/"PANIC","pan","global"
 {
 	// PANIC/[error description]
@@ -295,7 +305,7 @@ linkdef/"_envsetup","envsetup","global"
 		// _envsetup
 		// (no arguments)
 		set/"pcol","255255255"/"pwd","/"
-		setlist/"vn","vv","gl_vn","gl_vv","listn","listc"
+		setlist/"vn","vv","gl_vn","gl_vv","listn","listc","i_tree","bin_tree"
 		// Environment variables
 		// NOTE for environment variables (read before adding your own variables):
 		// I had to implement a quicker updating. The variables are
@@ -1062,14 +1072,57 @@ linkdef/"emc19","emc25","global"
 		source/$tmp_lib_set/in,temp2
 	endloop
 }
-//linkdef/"emc1A","emc26","global"
-//{
-	// Missing
-//}
-//linkdef/"emc1B","emc27","global"
-//{
-	// Missing
-//}
+linkdef/"emc1A","emc26","global"
+{
+	// Run binary.
+	// 1A/[code],[wait or bg]/[arg1]/[arg2]/...
+	getitem/"argument1",1/"code"
+	getitem/"argument1",2/"temp2"
+	calc/"c=arg_count-1"
+	setlist/"args"
+	set/"i3",0
+	repeat/c
+		calc/"i3=i3+1"
+		calc/"temp=i3+1"
+		set/"temp","arg_",temp
+		listtobin/temp/"bin"
+		append/bin/"args"
+	endloop
+	listtobin/"args"/"args_pass"
+	run/$tmp_lib_start,temp2/code,temp2/args_pass
+}
+linkdef/"emc1B","emc27","global"
+{
+	// Source.
+	// 1B/[code],[wait or bg]/[arg1]/[arg2]/...
+	getitem/"argument1",1/"code"
+	getitem/"argument1",2/"temp2"
+	calc/"c=arg_count-1"
+	setlist/"args"
+	set/"i3",0
+	repeat/c
+		calc/"i3=i3+1"
+		calc/"temp=i3+1"
+		set/"temp","arg_",temp
+		listtobin/temp/"bin"
+		append/bin/"args"
+	endloop
+	if/[temp2 == "bg"]
+		// bg source not supported yet, even in SMC Computer
+		source/$tmp_lib_pidkmsg/255000000,"source: bg not supported"
+	else
+		listtobin/"args"/"args_pass"
+		append/res1/"i_tree"
+		append/script_bin/"bin_tree"
+		source/$tmp_lib_emc,temp2/code,pid/args_pass
+		getitem/"i_tree","last"/"si"
+		getitem/"bin_tree","last"/"script_bin"
+		deleteitem/"last"/"i_tree"
+		deleteitem/"last"/"bin_tree"
+		set/"res1",si
+		listtobin/script_bin/"script"
+	endif
+}
 linkdef/"emc1C","emc28","global"
 {
 	// Get currently pressed keys and save them in a list.
@@ -1339,8 +1392,7 @@ linkdef/"emc37","emc55","global"
 	//getitem/"listc",ix/"list"
 	//smc_getarg/"list",in2,"tmpvn","tmpvv","tmpglvn","tmpglvv"/"tmpsi2","cmd","tmparg"
 	//
-	set/"msgp","pid ",pid
-	source/$tmp_lib_kmsg/msgp,255255000,"Virtualization isn't supported yet!"
+	source/$tmp_lib_pidkmsg/255255000,"Virtualization isn't supported yet!"
 }
 linkdef/"emc38","emc56","global"
 {
@@ -1365,24 +1417,45 @@ linkdef/"_runcommand","rcmd","global"
 // --- END EMC instructions ---
 linkdef/"_start","start","global"
 {
-	// _start/[binary]
+	// _start/[binary],[wait or bg]/[passed arguments - in ONE input as a binary]
 	add/$ps,1/"$ps"
-	run/$tmp_lib_emc/fd,$ps
+	getitem/"arg_1",1/"bin"
+	getitem/"arg_1",2/"temp"
+	getitem/"arg_2",1/"args"
+	run/$tmp_lib_emc,temp/bin,$ps/args
 }
 linkdef/"_emc","emc","global"
 {
 	warp
-		// _emc/[binary],[pid]/[_emc],[_envsetup],[_envupdate],[_runcommand],[kmsg],[PANIC],[_listpart],[resolvedev],[_ls],[_fixpath],[_set],[_if],[fileop],[skip_loop],[skip_if],<instructions>
+		// _emc/[binary],[pid]/[passed arguments - in ONE input as a binary]
 		//
 		// It's better to run this function
 		// without screen refresh (warp)
 		// Instructions that can't run properly with warp
 		// will enter non-warp mode automatically
-		getitem/"arg_1",1/"bin"
+		getitem/"arg_1",1/"script_bin"
 		getitem/"arg_1",2/"pid"
-		bintolist/bin/"script"
+		getitem/"arg_2",1/"pargs"
+		bintolist/script_bin/"script"
+		bintolist/pargs/"args"
+		getlistlength/"args"/"len"
+		_set/"arg_count",len
+		set/"si",0
+		repeat/len
+			calc/"si=si+1"
+			set/"temp","arg_",si
+			getindex/"listn",temp/"ix"
+			getitem/"args",si/"arg"
+			if/[ix == 0]
+				append/temp/"listn"
+				append/arg/"listc"
+			else
+				replace/ix,arg/"listc"
+			endif
+		endloop
 		getlistlength/"script"/"slen"
 		source/$tmp_lib_envsetup
+		source/$tmp_lib_pidkmsg/255255255,"started"
 		set/"si",0
 		while/[si < slen]
 			calc/"si=si+1"
@@ -1393,9 +1466,9 @@ linkdef/"_emc","emc","global"
 			set/"si",res1
 		endloop
 		if/[si < slen]
-			set/"msgp","pid ",pid
-			source/$tmp_lib_kmsg/msgp,255255000,"Crashed for unknown reason!"
+			source/$tmp_lib_pidkmsg/255255000,"Crashed for unknown reason!"
 		endif
+		source/$tmp_lib_pidkmsg/255255255,"stopped"
 	endwarp
 }
 warp
@@ -1516,6 +1589,6 @@ warp
 	endif
 	set/"$ps",0
 endwarp
-_start/fd
+_start/fd,"wait"
 // Panic after init stops
 PANIC/"Attempted to kill init!"
