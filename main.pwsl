@@ -1204,8 +1204,6 @@ linkdef/"emc24","emc36","global"
 		getitem/"argument2",1/"in2"
 		// Crash?
 		source/$tmp_lib_fop/in1
-		//fileop/in1
-		// ^ remove this line if that linkdef doesn't cause crashes
 		// We got the file data below
 		getitem/"fdata",ix/"file"
 		// Now, it needs to save it in the list
