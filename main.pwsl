@@ -18,6 +18,12 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
+// Some notes:
+// There are functions that use a loop to determine if something
+// exists in a list. This is SLOW and SPACE CONSUMING. Replace
+// it by getindex/[list name],[item]/[output var] and if output is
+// 0, then it doesn't exist, wherever possible!
+//
 // Functions
 linkdef/"kmsg","kmsg","global"
 {
@@ -273,6 +279,8 @@ linkdef/"_set","set","global"
 		getitem/"arg_1",1/"varn"
 		getitem/"arg_1",2/"varv"
 		getletter/varn,1/"flvn"
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
 		if/[flvn == "$"]
 			set/"nvarn","gl_vn"
 			set/"nvarv","gl_vv"
@@ -297,15 +305,29 @@ linkdef/"_set","set","global"
 			getindex/nvarn,varn/"tmp"
 			replace/tmp,varv/nvarv
 		endif
+		listtobin/"gl_vn"/"$gl_vn"
+		listtobin/"gl_vv"/"$gl_vv"
 	endwarp
 }
 linkdef/"_envsetup","envsetup","global"
 {
-	warp
+	//warp
 		// _envsetup
 		// (no arguments)
+		//
+		// Variables
 		set/"pcol","255255255"/"pwd","/"
-		setlist/"vn","vv","gl_vn","gl_vv","listn","listc","i_tree","bin_tree"
+		// Lists
+		setlist/"vn","vv","listn","listc","i_tree","bin_tree"
+		// User check
+		bintolist/$USERS/"USERS"
+		getindex/"USERS",whoami/"ix"
+		if/[ix == 0]
+			set/"msg","user '",whoami,"' not found"
+			source/$tmp_lib_pidkmsg/255000000,msg
+			set/"envrt",1
+			exit
+		endif
 		// Environment variables
 		// NOTE for environment variables (read before adding your own variables):
 		// I had to implement a quicker updating. The variables are
@@ -318,11 +340,13 @@ linkdef/"_envsetup","envsetup","global"
 		append/"%cpu"/"vn"
 		append/"%ps"/"vn"
 		append/"%pid"/"vn"
-		// Always change the number of variables below!
-		repeat/8
+		append/"%whoami"/"vn"
+		append/"%pwd"/"vn"
+		getlistlength/"vn"/"len"
+		repeat/len
 			append/""/"vv"
 		endloop
-	endwarp
+	//endwarp
 }
 linkdef/"_envupdate","envupdate","global"
 {
@@ -351,11 +375,17 @@ linkdef/"_envupdate","envupdate","global"
 	replace/7,tmp/"vv"
 	// Process ID
 	replace/8,pid/"vv"
+	// User
+	replace/9,whoami/"vv"
+	// Current directory
+	replace/10,pwd/"vv"
 }
 linkdef/"skip_loop","skl","global"
 {
 	warp
 		set/"si",res1/"pos",0
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
 		getitem/"command",1/"it"
 		while/[it == 3] nand [pos == 0]
 			calc/"si=si+1"
@@ -369,12 +399,16 @@ linkdef/"skip_loop","skl","global"
 				calc/"pos=pos-1"
 			endif
 		endloop
+		listtobin/"gl_vn"/"$gl_vn"
+		listtobin/"gl_vv"/"$gl_vv"
 	endwarp
 }
 linkdef/"skip_if","ski","global"
 {
 	warp
 		set/"si",res1/"pos",1
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
 		getitem/"command",1/"it"
 		while/[it == 5] nand [pos == 0]
 			calc/"si=si+1"
@@ -388,6 +422,8 @@ linkdef/"skip_if","ski","global"
 				calc/"pos=pos-1"
 			endif
 		endloop
+		listtobin/"gl_vn"/"$gl_vn"
+		listtobin/"gl_vv"/"$gl_vv"
 	endwarp
 }
 linkdef/"_if","if","global"
@@ -395,6 +431,8 @@ linkdef/"_if","if","global"
 	warp
 		// _if/[global? 1/0],[global custom ID]
 		// This function was ported from SMC Computer.
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
 		getitem/"arg_1",1/"gl?"
 		if/[gl? == 1]
 			getitem/"arg_1",2/"cid"
@@ -626,6 +664,8 @@ linkdef/"_if","if","global"
 				endif
 			endloop
 		endif
+		listtobin/"gl_vn"/"$gl_vn"
+		listtobin/"gl_vv"/"$gl_vv"
 	endwarp
 }
 linkdef/"fileop","fop","global"
@@ -641,6 +681,26 @@ linkdef/"fileop","fop","global"
 	source/$tmp_lib_fixpt/path/"path"
 	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata"
 	getindex/"fnames",gname/"ix"
+}
+linkdef/"_poweroff","poweroff","global"
+{
+	endwarp
+		// _poweroff/[wait time in secs]
+		getitem/"arg_1",1/"wait"
+		source/$tmp_lib_kmsg/"","003119252","System power off"
+		wait/in
+		shutdown
+	warp
+}
+linkdef/"_reboot","reboot","global"
+{
+	endwarp
+		// _reboot/[wait time in secs]
+		getitem/"arg_1",1/"wait"
+		source/$tmp_lib_kmsg/"","003119252","System restart"
+		wait/in
+		reboot
+	warp
 }
 // --- START EMC instructions ---
 linkdef/"emc0","emc0","global"
@@ -690,6 +750,8 @@ linkdef/"emc3","emc3","global"
 {
 	// The end of the last loop.
 	// 3
+	bintolist/$gl_vn/"gl_vn"
+	bintolist/$gl_vv/"gl_vv"
 	getlistlength/"loops-i"/"lil"
 	getitem/"loops-i",lil/"lit"
 	getitem/"loops-max",lil/"lit2"
@@ -721,6 +783,8 @@ linkdef/"emc3","emc3","global"
 			deleteitem/lil/"loops-max"
 		endif
 	endif
+	listtobin/"gl_vn"/"$gl_vn"
+	listtobin/"gl_vv"/"$gl_vv"
 }
 linkdef/"emc4","emc4","global"
 {
@@ -1202,7 +1266,6 @@ linkdef/"emc24","emc36","global"
 		// 24/[path]/[output list]
 		getitem/"argument1",1/"in1"
 		getitem/"argument2",1/"in2"
-		// Crash?
 		source/$tmp_lib_fop/in1
 		// We got the file data below
 		getitem/"fdata",ix/"file"
@@ -1224,10 +1287,61 @@ linkdef/"emc24","emc36","global"
 			append/file/"listc"
 		endif
 }
-//linkdef/"emc25","emc37","global"
-//{
-	// Reserved
-//}
+linkdef/"emc25","emc37","global"
+{
+	// Add user.
+	// 25/[username]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		// Add user
+		bintolist/$USERS/"USERS"
+		getindex/"USERS",in/"ix"
+		if/[ix == 0]
+			append/in/"USERS"
+		else
+			set/"err","User '",in,"' already exists"
+		endif
+		if/[err == ""]
+			// Create a group for the user
+			bintolist/$GROUPS/"GROUPS"
+			getindex/"GROUPS",in/"ix"
+			if/[ix == 0]
+				append/in/"GROUPS"
+			else
+				set/"msg","25: Warning: Group '",in,"' already exists"
+				source/$tmp_lib_pidkmsg/255123000,msg
+			endif
+			// Add the user to its group
+			bintolist/$GROUP_USERS/"GROUP_USERS"
+			getindex/"GROUPS",in/"ix"
+			getitem/"GROUP_USERS",ix/"it"
+			bintolist/it/"group"
+			getindex/"group",in/"ix"
+			if/[ix == 0]
+				append/in/"group"
+			else
+				set/"msg","25: Warning: User '",in,"' is already in group '",in,"'"
+				source/$tmp_lib_pidkmsg/255123000,msg
+			endif
+			listtobin/"group"/"it"
+			getindex/"GROUPS",in/"ix"
+			replace/ix,it/"GROUP_USERS"
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err == ""]
+		// Sync changes
+		listtobin/"USERS"/"$USERS"
+		listtobin/"GROUPS"/"$GROUPS"
+		listtobin/"GROUP_USERS"/"$GROUP_USERS"
+	else
+		set/"msg","25: Failed to add user: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+	
+}
 linkdef/"emc26","emc38","global"
 {
 	// Beep.
@@ -1263,42 +1377,273 @@ linkdef/"emc27","emc39","global"
 		append/""/"listc"
 	endif
 }
-//linkdef/"emc28","emc40","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc29","emc41","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc2A","emc42","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc2B","emc43","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc2C","emc44","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc2D","emc45","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc2E","emc46","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc2F","emc47","global"
-//{
-	// Reserved
-//}
-//linkdef/"emc30","emc48","global"
-//{
-	// Reserved
-//}
+linkdef/"emc28","emc40","global"
+{
+	// Delete user.
+	// 28/[username]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		bintolist/$USERS/"USERS"
+		getindex/"USERS",in/"ix"
+		if/[ix == 0]
+			set/"err","User '",in,"' not found"
+		else
+			// Delete user
+			if/[in == "root"]
+				set/"err","User 'root' can't be deleted"
+			else
+				deleteitem/ix/"USERS"
+				listtobin/"USERS"/"$USERS"
+				// Delete the user from all groups
+				bintolist/$GROUP_USERS/"GROUP_USERS"
+				getlistlength/"GROUP_USERS"/"len"
+				set/"i3",0
+				repeat/len
+					calc/"i3=i3+1"
+					getitem/"GROUP_USERS",i3/"it"
+					bintolist/it/"group"
+					set/"ix",1
+					while/[ix != 0]
+						getindex/"group",in/"ix"
+						deleteitem/ix/"group"
+					endloop
+					listtobin/"group"/"it"
+					replace/i3,it/"GROUP_USERS"
+				endloop
+				listtobin/"GROUP_USERS"/"$GROUP_USERS"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","28: Failed to delete user: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}
+linkdef/"emc29","emc41","global"
+{
+	// Add group.
+	// 29/[group name]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		bintolist/$GROUPS/"GROUPS"
+		getindex/"GROUPS",in/"ix"
+		if/[ix == 0]
+			append/in/"GROUPS"
+			listtobin/"GROUPS"/"$GROUPS"
+		else
+			set/"err","Group '",in,"' already exists"
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","29: Failed to add group: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}
+linkdef/"emc2A","emc42","global"
+{
+	// Delete group.
+	// 2A/[group name]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		bintolist/$GROUPS/"GROUPS"
+		getindex/"GROUPS",in/"ix"
+		if/[ix == 0]
+			set/"err","Group '",in,"' not found"
+		else
+			if/[in == "root"]
+				set/"err","Group 'root' can't be deleted"
+			else
+				deleteitem/ix/"GROUPS"
+				listtobin/"GROUPS"/"$GROUPS"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","2A: Failed to delete group: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}
+linkdef/"emc2B","emc43","global"
+{
+	// Switch power state.
+	// 2B/[ID]
+	// 1 - shutdown
+	// 2 - reboot
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		if/[in == 1]
+			source/$tmp_lib_poweroff/1
+		else
+			if/[in == 2]
+				source/$tmp_lib_reboot/1
+			else
+				set/"msg","2B: Unknown power state: ",in
+				source/$tmp_lib_pidkmsg/255000000,msg
+			endif
+		endif
+	else
+		source/$tmp_lib_pidkmsg/255000000,"2B: Switch power state failed: Permission denied"
+	endif
+}
+linkdef/"emc2C","emc44","global"
+{
+	// Add user to group.
+	// 2C/[username]/[group name]
+	set/"err",""
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	if/[whoami == "root"] or [whoami == in2]
+		// Check if the user exists
+		bintolist/$USERS/"USERS"
+		getindex/"USERS",in1/"ix"
+		if/[ix == 0]
+			set/"err","This user doesn't exist"
+		else
+			// Check if the group exists
+			bintolist/$GROUPS/"GROUPS"
+			getindex/"GROUPS",in2/"ix"
+			if/[ix == 0]
+				set/"err","This group doesn't exist"
+			else
+				// Check, if the user isn't already in the group
+				bintolist/$GROUP_USERS/"GROUP_USERS"
+				getitem/"GROUP_USERS",ix/"it"
+				bintolist/it/"group"
+				getindex/"group",in1/"ix"
+				if/[ix == 0]
+					// Add the user to the group
+					append/in1/"group"
+					// Sync the changes
+					listtobin/"group"/"it"
+					getindex/"GROUPS",in2/"ix"
+					replace/ix,it/"GROUP_USERS"
+					listtobin/"GROUP_USERS"/"$GROUP_USERS"
+				else
+					set/"err","User is already in the group"
+				endif
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","2C: Failed to add user '",in1,"' to group '",in2,"': ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}
+linkdef/"emc2D","emc45","global"
+{
+	// Delete user from group.
+	// 2D/[username]/[group name]
+	set/"err",""
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	if/[whoami == "root"] or [whoami == in2]
+		// Check if the group exists
+		bintolist/$GROUPS/"GROUPS"
+		getindex/"GROUPS",in2/"ix"
+		if/[ix == 0]
+			set/"err","This group doesn't exist"
+		else
+			// Check, if the user is in the group
+			bintolist/$GROUP_USERS/"GROUP_USERS"
+			getitem/"GROUP_USERS",ix/"it"
+			bintolist/it/"group"
+			getindex/"group",in1/"ix"
+			if/[ix == 0]
+				set/"err","User is not in the group"
+			else
+				// Delete the user from the group
+				deleteitem/ix/"group"
+				// Sync the changes
+				listtobin/"group"/"it"
+				getindex/"GROUPS",in2/"ix"
+				replace/ix,it/"GROUP_USERS"
+				listtobin/"GROUP_USERS"/"$GROUP_USERS"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","2D: Failed to delete user '",in1,"' from group '",in2,"': ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}
+linkdef/"emc2E","emc46","global"
+{
+	// Get list of users.
+	// 2E/[output list]
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		getindex/"listn",in/"ix"
+		if/[ix == 0]
+			append/in/"listn"
+			append/$USERS/"listc"
+		else
+			replace/ix,$USERS/"listc"
+		endif
+	else
+		source/$tmp_lib_pidkmsg/255000000,"2E: Unable to read user list: Permission denied"
+	endif
+}
+linkdef/"emc2F","emc47","global"
+{
+	// Get list of groups.
+	// 2F/[output list]
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		getindex/"listn",in/"ix"
+		if/[ix == 0]
+			append/in/"listn"
+			append/$GROUPS/"listc"
+		else
+			replace/ix,$GROUPS/"listc"
+		endif
+	else
+		source/$tmp_lib_pidkmsg/255000000,"2E: Unable to read group list: Permission denied"
+	endif
+}
+linkdef/"emc30","emc48","global"
+{
+	// Get list of users in a group.
+	// 30/[group name]/[output list]
+	set/"err",""
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	if/[whoami == "root"] or [whoami == in1]
+		bintolist/$GROUPS/"GROUPS"
+		getindex/"GROUPS",in1/"ix"
+		if/[ix == 0]
+			set/"err","Group '",in1,"' not found"
+		else
+			bintolist/$GROUP_NAMES/"GROUP_NAMES"
+			getitem/"GROUP_NAMES",ix/"it"
+			getindex/"listn",in2/"ix"
+			if/[ix == 0]
+				append/in2/"listn"
+				append/it/"listc"
+			else
+				replace/ix,it/"listc"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","2D: Unable to read group '",in1,"': ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}
 //linkdef/"emc31","emc49","global"
 //{
 	// Reserved
@@ -1344,6 +1689,8 @@ linkdef/"emc35","emc53","global"
 {
 	// Read variable.
 	// 35/[variable name]/[output variable name]
+	bintolist/$gl_vn/"gl_vn"
+	bintolist/$gl_vv/"gl_vv"
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
 	getletter/in1,1/"let"
@@ -1415,17 +1762,24 @@ linkdef/"_runcommand","rcmd","global"
 // --- END EMC instructions ---
 linkdef/"_start","start","global"
 {
-	// _start/[binary],[wait or bg]/[passed arguments - in ONE input as a binary]
-	add/$ps,1/"$ps"
-	getitem/"arg_1",1/"bin"
-	getitem/"arg_1",2/"temp"
-	getitem/"arg_2",1/"args"
-	run/$tmp_lib_emc,temp/bin,$ps/args
+	// _start/[binary],[wait or bg],[user]/[passed arguments - in ONE input as a binary]
+	warp
+		add/$ps,1/"$ps"
+		getitem/"arg_1",1/"bin"
+		getitem/"arg_1",2/"temp"
+		getitem/"arg_1",3/"user"
+		if/[arg_count > 1]
+			getitem/"arg_2",1/"args"
+		else
+			set/"args",""
+		endif
+	endwarp
+	run/$tmp_lib_emc,temp/bin,$ps,user/args
 }
 linkdef/"_emc","emc","global"
 {
-	warp
-		// _emc/[binary],[pid]/[passed arguments - in ONE input as a binary]
+	//warp
+		// _emc/[binary],[pid],[user]/[passed arguments - in ONE input as a binary]
 		//
 		// It's better to run this function
 		// without screen refresh (warp)
@@ -1433,27 +1787,34 @@ linkdef/"_emc","emc","global"
 		// will enter non-warp mode automatically
 		getitem/"arg_1",1/"script_bin"
 		getitem/"arg_1",2/"pid"
+		getitem/"arg_1",3/"whoami"
 		getitem/"arg_2",1/"pargs"
 		bintolist/script_bin/"script"
+		getlength/pargs/"len"
 		bintolist/pargs/"args"
 		getlistlength/"args"/"len"
-		_set/"arg_count",len
+		append/"arg_count"/"vn"
+		append/len/"vv"
 		set/"si",0
 		repeat/len
 			calc/"si=si+1"
-			set/"temp","arg_",si
-			getindex/"listn",temp/"ix"
 			getitem/"args",si/"arg"
-			if/[ix == 0]
-				append/temp/"listn"
-				append/arg/"listc"
-			else
-				replace/ix,arg/"listc"
-			endif
+			set/"temp","arg_",si
+			append/temp/"listn"
+			append/arg/"listc"
 		endloop
-		getlistlength/"script"/"slen"
+		set/"envrt",0
 		source/$tmp_lib_envsetup
-		source/$tmp_lib_pidkmsg/255255255,"started"
+		if/[envrt != 0]
+			set/"msg","crashed with error ",envrt
+			source/$tmp_lib_pidkmsg/255000000,msg
+			exit
+		endif
+		set/"msg","started as user '",whoami,"'"
+		source/$tmp_lib_pidkmsg/255255255,msg
+		getlistlength/"script"/"slen"
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
 		set/"si",0
 		while/[si < slen]
 			calc/"si=si+1"
@@ -1467,6 +1828,13 @@ linkdef/"_emc","emc","global"
 			source/$tmp_lib_pidkmsg/255255000,"Crashed for unknown reason!"
 		endif
 		source/$tmp_lib_pidkmsg/255255255,"stopped"
+	//endwarp
+}
+linkdef/"_userspace_setup","us_setup","local"
+{
+	warp
+		set/"$ps",0/"$gl_vn",""/"$gl_vv",""
+		set/"$GROUPS","4;root"/"$USERS","4;root"/"$GROUP_USERS","6;4;root"
 	endwarp
 }
 warp
@@ -1585,8 +1953,8 @@ warp
 	else
 		getitem/"fdata",ix/"fd"
 	endif
-	set/"$ps",0
+	_userspace_setup
 endwarp
-_start/fd,"wait"
+_start/fd,"wait","root"
 // Panic after init stops
 PANIC/"Attempted to kill init!"
