@@ -311,7 +311,7 @@ linkdef/"_set","set","global"
 }
 linkdef/"_envsetup","envsetup","global"
 {
-	//warp
+	warp
 		// _envsetup
 		// (no arguments)
 		//
@@ -346,7 +346,7 @@ linkdef/"_envsetup","envsetup","global"
 		repeat/len
 			append/""/"vv"
 		endloop
-	//endwarp
+	endwarp
 }
 linkdef/"_envupdate","envupdate","global"
 {
@@ -1778,7 +1778,7 @@ linkdef/"_start","start","global"
 }
 linkdef/"_emc","emc","global"
 {
-	//warp
+	warp
 		// _emc/[binary],[pid],[user]/[passed arguments - in ONE input as a binary]
 		//
 		// It's better to run this function
@@ -1828,7 +1828,7 @@ linkdef/"_emc","emc","global"
 			source/$tmp_lib_pidkmsg/255255000,"Crashed for unknown reason!"
 		endif
 		source/$tmp_lib_pidkmsg/255255255,"stopped"
-	//endwarp
+	endwarp
 }
 linkdef/"_userspace_setup","us_setup","local"
 {
