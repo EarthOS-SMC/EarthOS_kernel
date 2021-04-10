@@ -18,12 +18,6 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
-// Some notes:
-// There are functions that use a loop to determine if something
-// exists in a list. This is SLOW and SPACE CONSUMING. Replace
-// it by getindex/[list name],[item]/[output var] and if output is
-// 0, then it doesn't exist, wherever possible!
-//
 // Functions
 linkdef/"kmsg","kmsg","global"
 {
@@ -288,22 +282,12 @@ linkdef/"_set","set","global"
 			set/"nvarn","vn"
 			set/"nvarv","vv"
 		endif
-		set/"seti",0
-		getlistlength/nvarn/"settmp"
-		set/"found",0
-		while/[seti < settmp]
-			calc/"seti=seti+1"
-			getitem/nvarn,seti/"name"
-			if/[name == varn]
-				set/"found",1
-			endif
-		endloop
-		if/[found == 0]
+		getindex/nvarn,varn/"ix"
+		if/[ix == 0]
 			append/varn/nvarn
 			append/varv/nvarv
 		else
-			getindex/nvarn,varn/"tmp"
-			replace/tmp,varv/nvarv
+			replace/ix,varv/nvarv
 		endif
 		listtobin/"gl_vn"/"$gl_vn"
 		listtobin/"gl_vv"/"$gl_vv"
@@ -431,11 +415,17 @@ linkdef/"_if","if","global"
 	warp
 		// _if/[global? 1/0],[global custom ID]
 		// This function was ported from SMC Computer.
+		// TO-DO: This function is very buggy and decreases performance.
+		//        It would be better if it was in SMC Computer
+		//        like the instruction interpreter.
 		bintolist/$gl_vn/"gl_vn"
 		bintolist/$gl_vv/"gl_vv"
 		getitem/"arg_1",1/"gl?"
 		if/[gl? == 1]
 			getitem/"arg_1",2/"cid"
+			// TO-DO: Check if the interpreting below works correctly.
+			// It was breaking arguments in recent tests.
+			smc_getarg/"script",cid,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 		else
 			set/"gl?",0/"cid",si
 		endif
@@ -445,7 +435,6 @@ linkdef/"_if","if","global"
 		calc/"cmdl=cmdl-1"
 		repeat/cmdl
 			calc/"si3=si3+1"
-			smc_getarg/"script",cid,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"ln","argument",si3
 			mod/si3,2/"md"
 			if/[md == 1]
@@ -736,13 +725,13 @@ linkdef/"emc2","emc2","global"
 {
 	// Repeat loop.
 	// 2/[count]
+	getitem/"argument1",1/"in"
 	if/[in <= 0]
 		source/$tmp_lib_skl
 		set/"opcode",""
 	else
 		append/1/"loops-i"
 		append/si/"loops-id"
-		getitem/"argument1",1/"in"
 		append/in/"loops-max"
 	endif
 }
@@ -774,7 +763,6 @@ linkdef/"emc3","emc3","global"
 			calc/"new=lit+1"
 			replace/lil,new/"loops-i"
 			getitem/"loops-id",lil/"si"
-			source/$tmp_lib_envupdate
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"si",si2/"res1",si
 		else
@@ -790,7 +778,7 @@ linkdef/"emc4","emc4","global"
 {
 	// If.
 	// 4/<condition...>
-	source/$tmp_lib_if
+	source/$tmp_lib_if/0
 }
 //linkdef/"emc5","emc5"
 //{
@@ -884,10 +872,10 @@ linkdef/"emcF","emc15","global"
 		set/"scale",in
 	endif
 	setlist/"ops"/""
-	getlistlength/"argument4"/"len"
+	getlistlength/"argument1"/"len"
 	repeat/len
 		calc/"i2=i2+1"
-		getitem/"argument4",i2/"in"
+		getitem/"argument1",i2/"in"
 		append/in/"ops"
 	endloop
 	getlistlength/"argument3"/"len"
@@ -1000,20 +988,11 @@ linkdef/"emc14","emc20","global"
 	repeat/len
 		calc/"i2=i2+1"
 		getitem/"argument1",i2/"in"
-		getlistlength/"listn"/"len2"
-		set/"i3",0/"con",0
-		while/[i3 < len2]
-			calc/"i3=i3+1
-			getitem/"listn",i3/"it"
-			if/[it == in]
-				set/"i3",len2/"con",1
-			endif
-		endloop
-		if/[con == 0]
+		getindex/"listn",in/"ix"
+		if/[ix == 0]
 			append/in/"listn"
 			append/""/"listc"
 		endif
-		getindex/"listn",in/"ix"
 		replace/ix,temp2/"listc"
 	endloop
 }
@@ -1024,17 +1003,8 @@ linkdef/"emc15","emc21","global"
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
 	getlength/in1/"il"
-	getlistlength/"listn"/"len2"
-	set/"i3",0/"con",0
-	while/[i3 < len2]
-		calc/"i3=i3+1
-		getitem/"listn",i3/"it"
-		if/[it == in2]
-			set/"i3",len2/"con",1
-		endif
-	endloop
-	if/[con == 1]
-		getindex/"listn",in2/"ix"
+	getindex/"listn",in2/"ix"
+	if/[ix != 0]
 		getitem/"listc",ix/"it"
 		set/"it",it,il,";",in1
 		replace/ix,it/"listc"
@@ -1051,17 +1021,8 @@ linkdef/"emc16","emc22","global"
 	getitem/"argument1",1/"in1"
 	getitem/"argument1",2/"in2"
 	getitem/"argument2",1/"in3"
-	getlistlength/"listn"/"len2"
-	set/"i3",0/"con",0
-	while/[i3 < len2]
-		calc/"i3=i3+1"
-		getitem/"listn",i3/"it"
-		if/[it == in3]
-			set/"i3",len2/"con",1
-		endif
-	endloop
-	if/[con == 1]
-		getindex/"listn",in2/"ix"
+	getindex/"listn",in3/"ix"
+	if/[ix != 0]
 		getitem/"listc",ix/"it"
 		bintolist/it/"new"
 		replace/in1,in2/"new"
@@ -1079,17 +1040,8 @@ linkdef/"emc17","emc23","global"
 	getitem/"argument1",1/"in1"
 	getitem/"argument1",2/"in2"
 	getitem/"argument2",1/"in3"
-	getlistlength/"listn"/"len2"
-	set/"i3",0/"con",0
-	while/[i3 < len2]
-		calc/"i3=i3+1
-		getitem/"listn",i3/"it"
-		if/[it == in3]
-			set/"i3",len2/"con",1
-		endif
-	endloop
-	if/[con == 1]
-		getindex/"listn",in2/"ix"
+	getindex/"listn",in3/"ix"
+	if/[ix != 0]
 		getitem/"listc",ix/"it"
 		bintolist/it/"new"
 		insert/in1,in2/"new"
@@ -1139,46 +1091,48 @@ linkdef/"emc19","emc25","global"
 linkdef/"emc1A","emc26","global"
 {
 	// Run binary.
-	// 1A/[code],[wait or bg]/[arg1]/[arg2]/...
+	// 1A/[code],[wait or bg],[user]/[arg1]/[arg2]/...
 	getitem/"argument1",1/"code"
 	getitem/"argument1",2/"temp2"
+	getitem/"argument1",3/"user"
 	calc/"c=arg_count-1"
 	setlist/"args"
-	set/"i3",0
+	set/"i3",1
 	repeat/c
 		calc/"i3=i3+1"
 		calc/"temp=i3+1"
-		set/"temp","arg_",temp
+		set/"temp","argument",temp
 		listtobin/temp/"bin"
 		append/bin/"args"
 	endloop
 	listtobin/"args"/"args_pass"
-	run/$tmp_lib_start,temp2/code,temp2/args_pass
+	run/$tmp_lib_start,temp2/code,temp2,user/args_pass
 }
 linkdef/"emc1B","emc27","global"
 {
 	// Source.
-	// 1B/[code],[wait or bg]/[arg1]/[arg2]/...
+	// 1B/[code],[wait or bg],[user]/[arg1]/[arg2]/...
 	getitem/"argument1",1/"code"
 	getitem/"argument1",2/"temp2"
+	getitem/"argument1",3/"user"
 	calc/"c=arg_count-1"
 	setlist/"args"
-	set/"i3",0
+	set/"i3",1
 	repeat/c
 		calc/"i3=i3+1"
 		calc/"temp=i3+1"
-		set/"temp","arg_",temp
+		set/"temp","argument",temp
 		listtobin/temp/"bin"
 		append/bin/"args"
 	endloop
 	if/[temp2 == "bg"]
 		// bg source not supported yet, even in SMC Computer
-		source/$tmp_lib_pidkmsg/255000000,"source: bg not supported"
+		source/$tmp_lib_pidkmsg/255000000,"1B: bg not supported"
 	else
 		listtobin/"args"/"args_pass"
 		append/res1/"i_tree"
 		append/script_bin/"bin_tree"
-		source/$tmp_lib_emc,temp2/code,pid/args_pass
+		source/$tmp_lib_emc,temp2/code,pid,user/args_pass
 		getitem/"i_tree","last"/"si"
 		getitem/"bin_tree","last"/"script_bin"
 		deleteitem/"last"/"i_tree"
@@ -1194,17 +1148,8 @@ linkdef/"emc1C","emc28","global"
 	getitem/"argument1",1/"in"
 	getkey/"list"
 	listtobin/"list"/"bin"
-	getlistlength/"listn"/"len2"
-	set/"i3",0/"con",0
-	while/[i3 < len2]
-		calc/"i3=i3+1
-		getitem/"listn",i3/"it"
-		if/[it == in]
-			set/"i3",len2/"con",1
-		endif
-	endloop
-	if/[con == 1]
-		getindex/"listn",in/"ix"
+	getindex/"listn",in/"ix"
+	if/[ix != 0]
 		replace/ix,bin/"listc"
 	else
 		append/in/"listn"
@@ -1270,17 +1215,8 @@ linkdef/"emc24","emc36","global"
 		// We got the file data below
 		getitem/"fdata",ix/"file"
 		// Now, it needs to save it in the list
-		while/[i3 < len2]
-			calc/"i3=i3+1
-			getitem/"listn",i3/"it"
-			if/[it == in2]
-				set/"i3",len2/"con",1
-			endif
-		endloop
-		if/[con == 1]
-			getindex/"listn",in2/"ix"
-			print/"ix=",ix,\n
-			print/"file=",file,\n
+		getindex/"listn",in2/"ix"
+		if/[ix != 0]
 			replace/ix,file/"listc"
 		else
 			append/in2/"listn"
@@ -1357,16 +1293,8 @@ linkdef/"emc27","emc39","global"
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in3"
 	getlistlength/"listn"/"len2"
-	set/"i3",0/"con",0
-	while/[i3 < len2]
-		calc/"i3=i3+1
-		getitem/"listn",i3/"it"
-		if/[it == in3]
-			set/"i3",len2/"con",1
-		endif
-	endloop
-	if/[con == 1]
-		getindex/"listn",in2/"ix"
+	getindex/"listn",in2/"ix"
+	if/[ix != 0]
 		getitem/"listc",ix/"it"
 		bintolist/it/"new"
 		deleteitem/in1/"new"
@@ -1590,6 +1518,8 @@ linkdef/"emc2E","emc46","global"
 			append/in/"listn"
 			append/$USERS/"listc"
 		else
+			set/"dummy",""
+			// ^^^ workaround for a bug that for some reason freezes SMC Computer
 			replace/ix,$USERS/"listc"
 		endif
 	else
@@ -1644,10 +1574,23 @@ linkdef/"emc30","emc48","global"
 		source/$tmp_lib_pidkmsg/255000000,msg
 	endif
 }
-//linkdef/"emc31","emc49","global"
-//{
-	// Reserved
-//}
+linkdef/"emc31","emc49","global"
+{
+	// List files in a directory.
+	// 31/[path]/[output list]
+	// TO-DO: Directory read permissions!
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	_ls/in1,$rootfs/"ftypes","fnames","fdata"
+	listtobin/"fnames"/"bin"
+	getindex/"listn",in2/"ix"
+	if/[ix == 0]
+		append/in2/"listn"
+		append/bin/"listc"
+	else
+		replace/ix,bin/"listc"
+	endif
+}
 //linkdef/"emc32","emc50","global"
 //{
 	// Reserved
@@ -1658,17 +1601,8 @@ linkdef/"emc33","emc51","global"
 	// 33/[binary]/[list name]
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
-	getlistlength/"listn"/"len2"
-	set/"i3",0/"con",0
-	while/[i3 < len2]
-		calc/"i3=i3+1
-		getitem/"listn",i3/"it"
-		if/[it == in2]
-			set/"i3",len2/"con",1
-		endif
-	endloop
-	if/[con == 1]
-		getindex/"listn",in2/"ix"
+	getindex/"listn",in2/"ix"
+	if/[ix != 0]
 		replace/ix,in1/"listc"
 	else
 		append/in2/"listn"
@@ -1760,22 +1694,6 @@ linkdef/"_runcommand","rcmd","global"
 	source/emcop
 }
 // --- END EMC instructions ---
-linkdef/"_start","start","global"
-{
-	// _start/[binary],[wait or bg],[user]/[passed arguments - in ONE input as a binary]
-	warp
-		add/$ps,1/"$ps"
-		getitem/"arg_1",1/"bin"
-		getitem/"arg_1",2/"temp"
-		getitem/"arg_1",3/"user"
-		if/[arg_count > 1]
-			getitem/"arg_2",1/"args"
-		else
-			set/"args",""
-		endif
-	endwarp
-	run/$tmp_lib_emc,temp/bin,$ps,user/args
-}
 linkdef/"_emc","emc","global"
 {
 	warp
@@ -1810,8 +1728,8 @@ linkdef/"_emc","emc","global"
 			source/$tmp_lib_pidkmsg/255000000,msg
 			exit
 		endif
-		set/"msg","started as user '",whoami,"'"
-		source/$tmp_lib_pidkmsg/255255255,msg
+		//set/"msg","started as user '",whoami,"'"
+		//source/$tmp_lib_pidkmsg/255255255,msg
 		getlistlength/"script"/"slen"
 		bintolist/$gl_vn/"gl_vn"
 		bintolist/$gl_vv/"gl_vv"
@@ -1827,8 +1745,24 @@ linkdef/"_emc","emc","global"
 		if/[si < slen]
 			source/$tmp_lib_pidkmsg/255255000,"Crashed for unknown reason!"
 		endif
-		source/$tmp_lib_pidkmsg/255255255,"stopped"
+		//source/$tmp_lib_pidkmsg/255255255,"stopped"
 	endwarp
+}
+linkdef/"_start","start","global"
+{
+	// _start/[binary],[wait or bg],[user]/[passed arguments - in ONE input as a binary]
+	warp
+		add/$ps,1/"$ps"
+		getitem/"arg_1",1/"bin"
+		getitem/"arg_1",2/"temp"
+		getitem/"arg_1",3/"user"
+		if/[arg_count > 1]
+			getitem/"arg_2",1/"args"
+		else
+			set/"args",""
+		endif
+	endwarp
+	run/$tmp_lib_emc,temp/bin,$ps,user/args
 }
 linkdef/"_userspace_setup","us_setup","local"
 {
