@@ -196,6 +196,87 @@ linkdef/"_ls","ls","global"
 		endloop
 	endwarp
 }
+linkdef/"_writedir","wrdir","global"
+{
+	warp
+		// _writedir/[fs image],[types list],[names list],[data list],[permissions list],[owners list],[groups list],[attributes list]/[path],[output variable]
+		getitem/"arg_1",1/"fs"
+		getitem/"arg_1",2/"ilt"
+		getitem/"arg_1",3/"iln"
+		getitem/"arg_1",4/"ild"
+		getitem/"arg_1",5/"ilp"
+		getitem/"arg_1",6/"ilo"
+		getitem/"arg_1",7/"ilg"
+		getitem/"arg_1",8/"ila"
+		getitem/"arg_2",1/"path"
+		getitem/"arg_2",2/"ov"
+		setlist/"new"
+		// Convert binary
+		bintolist/fs/"fsl"
+		getlistlength/"fsl"/"fsll"
+		// Skip first item (filesystem format)
+		getitem/"fsl",1/"it"
+		append/it/"new"
+		set/"status",0/"i",1
+		while/[i < fsll]
+			// Definition path
+			calc/"i=i+1"
+			getitem/"fsl",i/"def"
+			// Number of files
+			calc/"i=i+1"
+			getitem/"fsl",i/"c"
+			if/[def == path]
+				if/[status == 0]
+					// Make sure the definition overwrites only once
+					set/"status",1
+					// Overwrite this definition
+					getlistlength/ilt/"len"
+					// Add number of files
+					append/len/"new"
+					set/"i2",0
+					repeat/len
+						calc/"i2=i2+1"
+						// Add type - file or folder
+						getitem/ilt,i2/"it"
+						append/it/"new"
+						// Add file name
+						getitem/iln,i2/"it"
+						append/it/"new"
+						// Add file data
+						getitem/ild,i2/"it"
+						append/it/"new"
+						// Add permissions
+						getitem/ilp,i2/"it"
+						append/it/"new"
+						// Add owner
+						getitem/ilo,i2/"it"
+						append/it/"new"
+						// Add group
+						getitem/ilg,i2/"it"
+						append/it/"new"
+						// Add attributes
+						getitem/ila,i2/"it"
+						append/it/"new"
+					endloop
+					// Update i
+					multi/i,7/"tmp"
+					calc/"i=i+tmp"
+				endif
+			else
+				// Skip this definition
+				repeat/c
+					repeat/7
+						calc/"i=i+1"
+						getitem/"fsl",i/"it"
+						append/it/"new"
+					endloop
+				endloop
+			endif
+		endloop
+		// Save output
+		listtobin/"new"/ov
+	endwarp
+}
 linkdef/"_fixpath","fixpt","global"
 {
 	warp
