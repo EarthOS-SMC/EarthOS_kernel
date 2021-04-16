@@ -1294,21 +1294,21 @@ linkdef/"emc23","emc35","global"
 }
 linkdef/"emc24","emc36","global"
 {
-		// Read file.
-		// 24/[path]/[output list]
-		getitem/"argument1",1/"in1"
-		getitem/"argument2",1/"in2"
-		source/$tmp_lib_fop/in1
-		// We got the file data below
-		getitem/"fdata",ix/"file"
-		// Now, it needs to save it in the list
-		getindex/"listn",in2/"ix"
-		if/[ix != 0]
-			replace/ix,file/"listc"
-		else
-			append/in2/"listn"
-			append/file/"listc"
-		endif
+	// Read file.
+	// 24/[path]/[output list]
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	source/$tmp_lib_fop/in1
+	// We got the file data below
+	getitem/"fdata",ix/"file"
+	// Now, it needs to save it in the list
+	getindex/"listn",in2/"ix"
+	if/[ix != 0]
+		replace/ix,file/"listc"
+	else
+		append/in2/"listn"
+		append/file/"listc"
+	endif
 }
 linkdef/"emc25","emc37","global"
 {
@@ -1678,10 +1678,75 @@ linkdef/"emc31","emc49","global"
 		replace/ix,bin/"listc"
 	endif
 }
-//linkdef/"emc32","emc50","global"
-//{
-	// Reserved
-//}
+linkdef/"emc32","emc50","global"
+{
+	// Write file.
+	// 32/[path]/[input list],[new permissions],[new owner],[new group]
+	getitem/"argument1",1/"path"
+	getitem/"argument2",1/"il"
+	getitem/"argument2",2/"perms"
+	getitem/"argument2",3/"owner"
+	getitem/"argument2",4/"group"
+	// Convert file data
+	getindex/"listn",il/"ix"
+	getitem/"listn",ix/"ild"
+	// Get file name
+	source/$tmp_lib_fixpt/path/"path"
+	getitem/"parts","last"/"filename"
+	// Get absolute path of the parent directory
+	set/"path",path,"/.."
+	source/$tmp_lib_fixpt/path/"path"
+	// List files
+	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	// Check, if the file exists
+	getindex/"fnames",filename/"ix"
+	if/[ix == 0]
+		// Process perms, owner and group
+		if/[perms == ""]
+			// Default file permissions
+			set/"perms","rw-rw-r--"
+		endif
+		if/[owner == ""]
+			// Default owner
+			set/"owner",whoami
+		endif
+		if/[group == ""]
+			// Default group
+			set/"group",whoami
+		endif
+		// Create the file
+		append/1/"ftypes"
+		append/filename/"fnames"
+		append/ild/"fdata"
+		append/perms/"fperms"
+		append/owner/"fowns"
+		append/group/"fgroups"
+	else
+		// Process perms, owner and group
+		if/[perms == ""]
+			getitem/"fperms",ix/"perms"
+		endif
+		if/[owner == ""]
+			getitem/"fowns",ix/"owner"
+		endif
+		if/[group == ""]
+			getitem/"fgroups",ix/"group"
+		endif
+		// Overwrite the file
+		getitem/"ftypes",ix/"ft"
+		if/[ft == 0]
+			source/$tmp_lib_pidkmsg/"Unable to write file: Is a directory"
+			exit
+		endif
+		replace/ix,filename/"fnames"
+		replace/ix,ild/"fdata"
+		replace/ix,perms/"fperms"
+		replace/ix,owner/"fowns"
+		replace/ix,group/"fgroups"
+	endif
+	// Write to parent directory
+	_writedir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
+}
 linkdef/"emc33","emc51","global"
 {
 	// Convert binary to list.
