@@ -304,32 +304,34 @@ linkdef/"_fixpath","fixpt","global"
 				else
 					if/[part == ".."]
 						// Go up
-						getlength/cur/"len2"
-						setlist/"parts2"
-						set/"part2",""/"i2",0
-						repeat/len2
-							calc/"i2=i2+1"
-							getletter/cur,i2/"let"
-							if/[let == "/"] or [i2 == len2]
-								if/[i2 > 1]
-									if/[i2 == len2]
-										set/"part2",part2,let
+						if/[cur != "/"]
+							getlength/cur/"len2"
+							setlist/"parts2"
+							set/"part2",""/"i2",0
+							repeat/len2
+								calc/"i2=i2+1"
+								getletter/cur,i2/"let"
+								if/[let == "/"] or [i2 == len2]
+									if/[i2 > 1]
+										if/[i2 == len2]
+											set/"part2",part2,let
+										endif
+										append/part2/"parts2"
+										set/"part2",""
 									endif
-									append/part2/"parts2"
-									set/"part2",""
+								else
+									set/"part2",part2,let
 								endif
-							else
-								set/"part2",part2,let
-							endif
-						endloop
-						getlistlength/"parts2"/"len2"
-						sub/len2,1/"len2"
-						set/"cur",""/"i2",0
-						repeat/len2
-							calc/"i2=i2+1"
-							getitem/"parts2",i2/"it"
-							set/"cur",cur,"/",it
-						endloop
+							endloop
+							getlistlength/"parts2"/"len2"
+							sub/len2,1/"len2"
+							set/"cur",""/"i2",0
+							repeat/len2
+								calc/"i2=i2+1"
+								getitem/"parts2",i2/"it"
+								set/"cur",cur,"/",it
+							endloop
+						endif
 					else
 						if/[cur == "/"]
 							set/"cur","/",part
