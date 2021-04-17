@@ -29,6 +29,7 @@ define/"kinit"
 		endif
 		// resolve root parameter
 		resolvedev/KERNEL_INPUT_root
+		set/"$rootpath",KERNEL_INPUT_root
 		getitem/"dl",1/"d"
 		cpdisk/d,1/"dbin"
 		_listpart/dbin/"pt","pts","ptd"

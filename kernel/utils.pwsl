@@ -24,7 +24,12 @@ linkdef/"resolvedev","rsd","global"
 		getitem/"arg_1",1/"devp"
 		set/"dvn","$",devp/"rdi",0/"dlt",""
 		readvar/dvn/"dv"
+		getletter/dv,1/"let"
 		setlist/"dl"
+		if/[let == "/"]
+			append/dv/"dl"
+			exit
+		endif
 		getlength/dv/"dvl"
 		repeat/dvl
 			calc/"rdi=rdi+1"

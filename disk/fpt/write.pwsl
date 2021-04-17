@@ -1,0 +1,64 @@
+// EarthOS kernel - FSSC Partition Table - write
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"_writedisk","wrdisk","global"
+{
+	warp
+		// _writedisk/[partition names list],[partition sizes list],[partition data list]/[disk ID]
+		getitem/"arg_1",1/"ptl"
+		getitem/"arg_1",2/"ptsl"
+		getitem/"arg_1",3/"ptdl"
+		getitem/"arg_2",1/"dn"
+		setlist/"ptlist"
+		getlistlength/"ptl"/"len"
+		set/"lpi",0
+		repeat/len
+			calc/"lpi=lpi+1"
+			// Partition name
+			getitem/ptl,lpi/"ptp"
+			append/ptp/"ptlist"
+			// Partition size
+			getitem/ptsl,lpi/"ptp"
+			append/ptp/"ptlist"
+			// Partition content
+			getitem/ptdl,lpi/"ptp"
+			append/ptp/"ptlist"
+		endloop
+		listtobin/"ptlist"/"bin"
+		cpdisk/dn,1/"dbin"
+		getlength/dbin/"len1"
+		getlength/bin/"len2"
+		calc/"len=len1-len2"
+		repeat/len
+			set/"bin",bin,0
+		endloop
+		writedisk/bin/dn,4097
+	endwarp
+}
+linkdef/"_writepart","wrpart","global"
+{
+	warp
+		// _writepart/[image]/[disk ID],[part ID]
+		getitem/"arg_1",1/"fs"
+		getitem/"arg_2",1/"dn"
+		getitem/"arg_2",2/"ptn"
+		cpdisk/d,1/"bin"
+		source/$tmp_lib_lpt/bin/"pt","pts","ptd"
+		replace/ptn,bin/"ptd"
+		source/$tmp_lib_wrdisk/"pt","pts","ptd"/dn
+	endwarp
+}

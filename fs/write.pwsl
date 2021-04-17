@@ -1,8 +1,6 @@
-// EarthOS kernel - FSSC Partition Table
+// EarthOS kernel - general filesystem write management
 //
 //    Copyright (C) 2021  adazem009
-//
-// Functions used to read/write the FSSC partition table.
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -17,31 +15,20 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
-linkdef/"_listpart","lpt","global"
+linkdef/"syncfs","syncfs","global"
 {
 	warp
-		// _listpart/[partition table image]/[output list - names],[output list - sizes],[output list - data]
-		getitem/"arg_1",1/"ptim"
-		getitem/"arg_2",1/"oln"
-		getitem/"arg_2",2/"ols"
-		getitem/"arg_2",3/"old"
-		bintolist/ptim/"ptlist"
-		getlistlength/"ptlist"/"ptl"
-		setlist/oln,ols,old
-		set/"lpi",0
-		while/[lpi < ptl]
-			// Partition name
-			calc/"lpi=lpi+1"
-			getitem/"ptlist",lpi/"pr"
-			append/pr/oln
-			// Partition size
-			calc/"lpi=lpi+1"
-			getitem/"ptlist",lpi/"pr"
-			append/pr/ols
-			// Partition content
-			calc/"lpi=lpi+1"
-			getitem/"ptlist",lpi/"pr"
-			append/pr/old
+		// syncfs/[fs image]/[device path]
+		getitem/"arg_1",1/"fs"
+		getitem/"arg_2",2/"path"
+		set/"let","/"
+		while/[let == "/"]
+			source/$tmp_lib_rsd/path
+			getitem/"dl",1/"path"
+			getletter/path,1/"let"
 		endloop
+		getitem/"dl",1/"d"
+		getitem/"dl",2/"pt"
+		source/$tmp_lib_wrpart/fs/d,pt
 	endwarp
 }
