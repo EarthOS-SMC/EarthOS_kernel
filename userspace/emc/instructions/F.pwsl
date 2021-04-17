@@ -1,0 +1,67 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emcF","emc15","global"
+{
+	// Operations.
+	// F/[operation ID(s)]/[target variable(s)]/[inputs]/[scale]
+	set/"scale",16/"i2",0
+	getitem/"argument4",1/"in"
+	if/[in != ""]
+		set/"scale",in
+	endif
+	setlist/"ops"/""
+	getlistlength/"argument1"/"len"
+	repeat/len
+		calc/"i2=i2+1"
+		getitem/"argument1",i2/"in"
+		append/in/"ops"
+	endloop
+	getlistlength/"argument3"/"len"
+	set/"temp2",0/"i2",0
+	repeat/len
+		calc/"i2=i2+1"
+		getitem/"argument3",i2/"in"
+		if/[i2 == 1]
+			set/"temp2",in
+		else
+			getitem/"ops",i2/"op"
+			if/[op == 1]
+				add/temp2,in/"temp2"
+			endif
+			if/[op == 2]
+				sub/temp2,in/"temp2"
+			endif
+			if/[op == 3]
+				multi/temp2,in/"temp2"
+			endif
+			if/[op == 4]
+				div/temp2,in/"temp2"
+			endif
+			if/[op == 5]
+				mod/temp2,in/"temp2"
+			endif
+		endif
+	endloop
+	getlistlength/"argument2"/"len"
+	set/"i2",0
+	repeat/len
+		calc/"i2=i2+1"
+		getitem/"argument2",i2/"in"
+		source/$tmp_lib_set/in,temp2
+	endloop
+}

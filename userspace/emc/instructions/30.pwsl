@@ -1,0 +1,48 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc30","emc48","global"
+{
+	// Get list of users in a group.
+	// 30/[group name]/[output list]
+	set/"err",""
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	if/[whoami == "root"] or [whoami == in1]
+		bintolist/$GROUPS/"GROUPS"
+		getindex/"GROUPS",in1/"ix"
+		if/[ix == 0]
+			set/"err","Group '",in1,"' not found"
+		else
+			bintolist/$GROUP_NAMES/"GROUP_NAMES"
+			getitem/"GROUP_NAMES",ix/"it"
+			getindex/"listn",in2/"ix"
+			if/[ix == 0]
+				append/in2/"listn"
+				append/it/"listc"
+			else
+				replace/ix,it/"listc"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","2D: Unable to read group '",in1,"': ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}

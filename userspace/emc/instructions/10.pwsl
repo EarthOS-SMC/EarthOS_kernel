@@ -1,0 +1,39 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc10","emc16","global"
+{
+	// Set variable(s) to value(s).
+	// 10/[var name],[value]/[var name],[value]/...
+	getlistlength/"command"/"len"
+	calc/"len=len-1"
+	set/"i3",0
+	repeat/len
+		calc/"i3=i3+1"
+		set/"an","argument",i3
+		getlistlength/an/"len2"
+		calc/"len2=len2-1"
+		set/"temp",""/"i4",1
+		repeat/len2
+			calc/"i4=i4+1"
+			getitem/an,i4/"in"
+			set/"temp",temp,in
+		endloop
+		getitem/an,1/"in"
+		source/$tmp_lib_set/in,temp
+	endloop
+}

@@ -16,6 +16,14 @@ if ! [ -f "compile.sh" ]; then
 	echo "Error: Couldn't find compiler script."
 	exit 2
 fi
+if [ -f "include" ]; then
+	"Error: 'include' file exists, it should be a directory."
+	exit 4
+fi
+if [ -d "include" ]; then
+	rm -rf include
+fi
+ln -s .. include
 chmod +x compile.sh
 if [[ "$1" == '' ]]; then
 	name=main

@@ -1,0 +1,74 @@
+// EarthOS kernel - output messages
+//
+//    Copyright (C) 2021  adazem009
+//
+// Here are some of the main kernel functions for output.
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"kmsg","kmsg","global"
+{
+	warp
+		// kmsg/[source],[color],[message],[message],...
+		getlistlength/"arg_1"/"kmc"
+		calc/"kup=%time-$kstart"/2
+		set/"ts","[ ",kup," ] "/"kmi",0
+		//print/"ˇ000255000ˇ",ts
+		print/\c"000255000",ts
+		getlength/ts/"tsl"
+		getitem/"arg_1",2/"kmcl"
+		repeat/kmc
+			calc/"kmi=kmi+1"
+			getitem/"arg_1",kmi/"km"
+			if/[km == "\n"] and [kmi > 2]
+				print/\n
+				calc/"tsl2=tsl-1"
+				// ^^^ Fix an incorrect text alignment
+				repeat/tsl2
+					print/" "
+				endloop
+			else
+				if/[km != ""]
+					if/[kmi == 1]
+						print/\c"2461160",km,": "
+					else
+						// I know this is duplicate, but the colored
+						// text is a bit broken in SMC Computer, so
+						// I used this workaround
+						if/[kmi > 2]
+							//print/km
+							print/\ckmcl,km
+						endif
+					endif
+				else
+					if/[kmi > 2]
+						//print/km
+						print/\ckmcl,km
+					endif
+				endif
+			endif
+		endloop
+		print/\n
+	endwarp
+}
+linkdef/"pidkmsg","pidkmsg","global"
+{
+	warp
+		// pidkmsg/[color],[message]
+		getitem/"arg_1",1/"msgc"
+		getitem/"arg_1",2/"msgt"
+		set/"msgp","pid ",pid
+		kmsg/msgp,msgc,msgt
+	endwarp
+}

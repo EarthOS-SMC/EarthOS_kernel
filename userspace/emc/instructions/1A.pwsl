@@ -1,0 +1,37 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc1A","emc26","global"
+{
+	// Run binary.
+	// 1A/[code],[wait or bg],[user]/[arg1]/[arg2]/...
+	getitem/"argument1",1/"code"
+	getitem/"argument1",2/"temp2"
+	getitem/"argument1",3/"user"
+	calc/"c=arg_count-1"
+	setlist/"args"
+	set/"i3",1
+	repeat/c
+		calc/"i3=i3+1"
+		calc/"temp=i3+1"
+		set/"temp","argument",temp
+		listtobin/temp/"bin"
+		append/bin/"args"
+	endloop
+	listtobin/"args"/"args_pass"
+	run/$tmp_lib_start,temp2/code,temp2,user/args_pass
+}

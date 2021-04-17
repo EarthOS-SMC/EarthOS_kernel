@@ -1,0 +1,62 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc28","emc40","global"
+{
+	// Delete user.
+	// 28/[username]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		bintolist/$USERS/"USERS"
+		getindex/"USERS",in/"ix"
+		if/[ix == 0]
+			set/"err","User '",in,"' not found"
+		else
+			// Delete user
+			if/[in == "root"]
+				set/"err","User 'root' can't be deleted"
+			else
+				deleteitem/ix/"USERS"
+				listtobin/"USERS"/"$USERS"
+				// Delete the user from all groups
+				bintolist/$GROUP_USERS/"GROUP_USERS"
+				getlistlength/"GROUP_USERS"/"len"
+				set/"i3",0
+				repeat/len
+					calc/"i3=i3+1"
+					getitem/"GROUP_USERS",i3/"it"
+					bintolist/it/"group"
+					set/"ix",1
+					while/[ix != 0]
+						getindex/"group",in/"ix"
+						deleteitem/ix/"group"
+					endloop
+					listtobin/"group"/"it"
+					replace/i3,it/"GROUP_USERS"
+				endloop
+				listtobin/"GROUP_USERS"/"$GROUP_USERS"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","28: Failed to delete user: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}

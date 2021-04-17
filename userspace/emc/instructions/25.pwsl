@@ -1,0 +1,72 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc25","emc37","global"
+{
+	// Add user.
+	// 25/[username]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		// Add user
+		bintolist/$USERS/"USERS"
+		getindex/"USERS",in/"ix"
+		if/[ix == 0]
+			append/in/"USERS"
+		else
+			set/"err","User '",in,"' already exists"
+		endif
+		if/[err == ""]
+			// Create a group for the user
+			bintolist/$GROUPS/"GROUPS"
+			getindex/"GROUPS",in/"ix"
+			if/[ix == 0]
+				append/in/"GROUPS"
+			else
+				set/"msg","25: Warning: Group '",in,"' already exists"
+				source/$tmp_lib_pidkmsg/255123000,msg
+			endif
+			// Add the user to its group
+			bintolist/$GROUP_USERS/"GROUP_USERS"
+			getindex/"GROUPS",in/"ix"
+			getitem/"GROUP_USERS",ix/"it"
+			bintolist/it/"group"
+			getindex/"group",in/"ix"
+			if/[ix == 0]
+				append/in/"group"
+			else
+				set/"msg","25: Warning: User '",in,"' is already in group '",in,"'"
+				source/$tmp_lib_pidkmsg/255123000,msg
+			endif
+			listtobin/"group"/"it"
+			getindex/"GROUPS",in/"ix"
+			replace/ix,it/"GROUP_USERS"
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err == ""]
+		// Sync changes
+		listtobin/"USERS"/"$USERS"
+		listtobin/"GROUPS"/"$GROUPS"
+		listtobin/"GROUP_USERS"/"$GROUP_USERS"
+	else
+		set/"msg","25: Failed to add user: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+	
+}

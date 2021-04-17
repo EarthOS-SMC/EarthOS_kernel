@@ -1,0 +1,86 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc32","emc50","global"
+{
+	// Write file.
+	// 32/[path]/[input list],[new permissions],[new owner],[new group]
+	getitem/"argument1",1/"path"
+	getitem/"argument2",1/"il"
+	getitem/"argument2",2/"perms"
+	getitem/"argument2",3/"owner"
+	getitem/"argument2",4/"group"
+	// Convert file data
+	getindex/"listn",il/"ix"
+	getitem/"listn",ix/"ild"
+	// Get file name
+	source/$tmp_lib_fixpt/path/"path"
+	getitem/"parts","last"/"filename"
+	// Get absolute path of the parent directory
+	set/"path",path,"/.."
+	source/$tmp_lib_fixpt/path/"path"
+	// List files
+	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	// Check, if the file exists
+	getindex/"fnames",filename/"ix"
+	if/[ix == 0]
+		// Process perms, owner and group
+		if/[perms == ""]
+			// Default file permissions
+			set/"perms","rw-rw-r--"
+		endif
+		if/[owner == ""]
+			// Default owner
+			set/"owner",whoami
+		endif
+		if/[group == ""]
+			// Default group
+			set/"group",whoami
+		endif
+		// Create the file
+		append/1/"ftypes"
+		append/filename/"fnames"
+		append/ild/"fdata"
+		append/perms/"fperms"
+		append/owner/"fowns"
+		append/group/"fgroups"
+	else
+		// Process perms, owner and group
+		if/[perms == ""]
+			getitem/"fperms",ix/"perms"
+		endif
+		if/[owner == ""]
+			getitem/"fowns",ix/"owner"
+		endif
+		if/[group == ""]
+			getitem/"fgroups",ix/"group"
+		endif
+		// Overwrite the file
+		getitem/"ftypes",ix/"ft"
+		if/[ft == 0]
+			source/$tmp_lib_pidkmsg/"Unable to write file: Is a directory"
+			exit
+		endif
+		replace/ix,filename/"fnames"
+		replace/ix,ild/"fdata"
+		replace/ix,perms/"fperms"
+		replace/ix,owner/"fowns"
+		replace/ix,group/"fgroups"
+	endif
+	// Write to parent directory
+	_writedir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
+}

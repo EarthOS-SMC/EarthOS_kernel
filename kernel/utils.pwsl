@@ -1,0 +1,126 @@
+// EarthOS kernel - utilities
+//
+//    Copyright (C) 2021  adazem009
+//
+// Some utilities that don't fit in other categories.
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"resolvedev","rsd","global"
+{
+	warp
+		// resolvedev/[path]
+		getitem/"arg_1",1/"devp"
+		set/"dvn","$",devp/"rdi",0/"dlt",""
+		readvar/dvn/"dv"
+		setlist/"dl"
+		getlength/dv/"dvl"
+		repeat/dvl
+			calc/"rdi=rdi+1"
+			getletter/dv,rdi/"rdl"
+			if/[rdl == ","]
+				append/dlt/"dl"
+				set/"dlt",""
+			else
+				set/"dlt",dlt,rdl
+			endif
+		endloop
+		append/dlt/"dl"
+	endwarp
+}
+linkdef/"_fixpath","fixpt","global"
+{
+	warp
+		// _fixpath/[path]/[output variable]
+		getitem/"arg_1",1/"path"
+		getitem/"arg_2",1/"out"
+		getlength/path/"len"
+		set/"cur",pwd
+		setlist/"parts"
+		set/"i",0/"part",""
+		while/[i < len]
+			calc/"i=i+1"
+			getletter/path,i/"let"
+			if/[let == "/"] or [i == len]
+				if/[i == len]
+					set/"part",part,let
+				endif
+				if/[i == 1]
+					set/"part",""/"cur","/"
+				endif
+				append/part/"parts"
+				if/[part == "."] or [part == ""]
+					// Go to pwd
+					// this needn't be defined
+				else
+					if/[part == ".."]
+						// Go up
+						if/[cur != "/"]
+							getlength/cur/"len2"
+							setlist/"parts2"
+							set/"part2",""/"i2",0
+							repeat/len2
+								calc/"i2=i2+1"
+								getletter/cur,i2/"let"
+								if/[let == "/"] or [i2 == len2]
+									if/[i2 > 1]
+										if/[i2 == len2]
+											set/"part2",part2,let
+										endif
+										append/part2/"parts2"
+										set/"part2",""
+									endif
+								else
+									set/"part2",part2,let
+								endif
+							endloop
+							getlistlength/"parts2"/"len2"
+							sub/len2,1/"len2"
+							set/"cur",""/"i2",0
+							repeat/len2
+								calc/"i2=i2+1"
+								getitem/"parts2",i2/"it"
+								set/"cur",cur,"/",it
+							endloop
+						endif
+					else
+						if/[cur == "/"]
+							set/"cur","/",part
+						else
+							set/"cur",cur,"/",part
+						endif
+					endif
+				endif
+				set/"part",""
+			else
+				set/"part",part,let
+			endif
+		endloop
+		set/out,cur
+	endwarp
+}
+linkdef/"fileop","fop","global"
+{
+	// fileop/[path]
+	getitem/"arg_1",1/"in"
+	source/$tmp_lib_fixpt/in/"path"
+	// The last item is our file name
+	getlistlength/"parts"/"len"
+	getitem/"parts",len/"gname"
+	set/"path",in,"/.."
+	// ^ This will make _fixpath ignore the last part of the path
+	source/$tmp_lib_fixpt/path/"path"
+	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata"
+	getindex/"fnames",gname/"ix"
+}

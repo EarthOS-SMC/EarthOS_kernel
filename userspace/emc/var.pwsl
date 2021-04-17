@@ -1,0 +1,45 @@
+// EMC - variables
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"_set","set","global"
+{
+	warp
+		// _set/[var name],[value]
+		// This function was ported from SMC Computer.
+		getitem/"arg_1",1/"varn"
+		getitem/"arg_1",2/"varv"
+		getletter/varn,1/"flvn"
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
+		if/[flvn == "$"]
+			set/"nvarn","gl_vn"
+			set/"nvarv","gl_vv"
+		else
+			set/"nvarn","vn"
+			set/"nvarv","vv"
+		endif
+		getindex/nvarn,varn/"ix"
+		if/[ix == 0]
+			append/varn/nvarn
+			append/varv/nvarv
+		else
+			replace/ix,varv/nvarv
+		endif
+		listtobin/"gl_vn"/"$gl_vn"
+		listtobin/"gl_vv"/"$gl_vv"
+	endwarp
+}

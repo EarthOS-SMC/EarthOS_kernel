@@ -1,0 +1,39 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc2B","emc43","global"
+{
+	// Switch power state.
+	// 2B/[ID]
+	// 1 - shutdown
+	// 2 - reboot
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		if/[in == 1]
+			source/$tmp_lib_poweroff/1
+		else
+			if/[in == 2]
+				source/$tmp_lib_reboot/1
+			else
+				set/"msg","2B: Unknown power state: ",in
+				source/$tmp_lib_pidkmsg/255000000,msg
+			endif
+		endif
+	else
+		source/$tmp_lib_pidkmsg/255000000,"2B: Switch power state failed: Permission denied"
+	endif
+}

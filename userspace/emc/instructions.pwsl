@@ -1,0 +1,74 @@
+// EMC - instructions
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+include/"userspace/emc/instructions/0.pwsl"
+include/"userspace/emc/instructions/1.pwsl"
+include/"userspace/emc/instructions/2.pwsl"
+include/"userspace/emc/instructions/3.pwsl"
+include/"userspace/emc/instructions/4.pwsl"
+include/"userspace/emc/instructions/5.pwsl"
+include/"userspace/emc/instructions/6.pwsl"
+include/"userspace/emc/instructions/7.pwsl"
+include/"userspace/emc/instructions/8.pwsl"
+include/"userspace/emc/instructions/9.pwsl"
+include/"userspace/emc/instructions/A.pwsl"
+include/"userspace/emc/instructions/B.pwsl"
+include/"userspace/emc/instructions/C.pwsl"
+include/"userspace/emc/instructions/D.pwsl"
+include/"userspace/emc/instructions/E.pwsl"
+include/"userspace/emc/instructions/F.pwsl"
+include/"userspace/emc/instructions/10.pwsl"
+include/"userspace/emc/instructions/11.pwsl"
+include/"userspace/emc/instructions/12.pwsl"
+include/"userspace/emc/instructions/13.pwsl"
+include/"userspace/emc/instructions/14.pwsl"
+include/"userspace/emc/instructions/15.pwsl"
+include/"userspace/emc/instructions/16.pwsl"
+include/"userspace/emc/instructions/17.pwsl"
+include/"userspace/emc/instructions/18.pwsl"
+include/"userspace/emc/instructions/19.pwsl"
+include/"userspace/emc/instructions/1A.pwsl"
+include/"userspace/emc/instructions/1B.pwsl"
+include/"userspace/emc/instructions/1C.pwsl"
+include/"userspace/emc/instructions/1D.pwsl"
+include/"userspace/emc/instructions/1E.pwsl"
+include/"userspace/emc/instructions/1F.pwsl"
+include/"userspace/emc/instructions/20.pwsl"
+include/"userspace/emc/instructions/21.pwsl"
+include/"userspace/emc/instructions/22.pwsl"
+include/"userspace/emc/instructions/23.pwsl"
+include/"userspace/emc/instructions/24.pwsl"
+include/"userspace/emc/instructions/25.pwsl"
+include/"userspace/emc/instructions/26.pwsl"
+include/"userspace/emc/instructions/27.pwsl"
+include/"userspace/emc/instructions/28.pwsl"
+include/"userspace/emc/instructions/29.pwsl"
+include/"userspace/emc/instructions/2A.pwsl"
+include/"userspace/emc/instructions/2B.pwsl"
+include/"userspace/emc/instructions/2C.pwsl"
+include/"userspace/emc/instructions/2D.pwsl"
+include/"userspace/emc/instructions/2E.pwsl"
+include/"userspace/emc/instructions/2F.pwsl"
+include/"userspace/emc/instructions/30.pwsl"
+include/"userspace/emc/instructions/31.pwsl"
+include/"userspace/emc/instructions/32.pwsl"
+include/"userspace/emc/instructions/33.pwsl"
+include/"userspace/emc/instructions/34.pwsl"
+include/"userspace/emc/instructions/35.pwsl"
+include/"userspace/emc/instructions/36.pwsl"
+include/"userspace/emc/instructions/37.pwsl"
+include/"userspace/emc/instructions/38.pwsl"

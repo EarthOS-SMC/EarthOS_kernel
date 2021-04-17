@@ -1,0 +1,47 @@
+// EarthOS kernel - FSSC Partition Table
+//
+//    Copyright (C) 2021  adazem009
+//
+// Functions used to read/write the FSSC partition table.
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"_listpart","lpt","global"
+{
+	warp
+		// _listpart/[partition table image]/[output list - names],[output list - sizes],[output list - data]
+		getitem/"arg_1",1/"ptim"
+		getitem/"arg_2",1/"oln"
+		getitem/"arg_2",2/"ols"
+		getitem/"arg_2",3/"old"
+		bintolist/ptim/"ptlist"
+		getlistlength/"ptlist"/"ptl"
+		setlist/oln,ols,old
+		set/"lpi",0
+		while/[lpi < ptl]
+			// Partition name
+			calc/"lpi=lpi+1"
+			getitem/"ptlist",lpi/"pr"
+			append/pr/oln
+			// Partition size
+			calc/"lpi=lpi+1"
+			getitem/"ptlist",lpi/"pr"
+			append/pr/ols
+			// Partition content
+			calc/"lpi=lpi+1"
+			getitem/"ptlist",lpi/"pr"
+			append/pr/old
+		endloop
+	endwarp
+}

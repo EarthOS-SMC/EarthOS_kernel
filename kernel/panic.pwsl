@@ -1,0 +1,36 @@
+// EarthOS kernel - panic
+//
+//    Copyright (C) 2021  adazem009
+//
+// Kernel panic... any kernel space process can use this to stop the kernel.
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"PANIC","pan","global"
+{
+	// PANIC/[error description]
+	warp
+		getitem/"arg_1",1/"panicdesc"
+		kmsg/"Kernel panic",255000000,"\n",panicdesc
+		// Uncomment the lines below to enable auto reboot after panic
+		//kmsg/"",255255255,"Rebooting in 10 seconds..."
+	endwarp
+	//wait/10
+	//reboot
+	// The lines below should be commented out if auto reboot is enabled
+	while/[true]
+		// nothing here
+		wait/1000
+	endloop
+}

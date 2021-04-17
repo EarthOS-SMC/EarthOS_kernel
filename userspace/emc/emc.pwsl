@@ -1,0 +1,103 @@
+// EarthOS Machine Code
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+include/"userspace/emc/var.pwsl"
+include/"userspace/emc/env.pwsl"
+include/"userspace/emc/utils.pwsl"
+include/"userspace/emc/instructions.pwsl"
+//
+linkdef/"_runcommand","rcmd","global"
+{
+	getitem/"command",1/"opcode"
+	// Uncomment if needed for debugging:
+	//print/si,": ",opcode,\n
+	set/"opcode","0x",opcode
+	add/opcode,0/"opcode"
+	set/"emcop","$tmp_lib_emc",opcode
+	readvar/emcop/"emcop"
+	source/emcop
+}
+linkdef/"_emc","emc","global"
+{
+	warp
+		// _emc/[binary],[pid],[user]/[passed arguments - in ONE input as a binary]
+		//
+		// It's better to run this function
+		// without screen refresh (warp)
+		// Instructions that can't run properly with warp
+		// will enter non-warp mode automatically
+		getitem/"arg_1",1/"script_bin"
+		getitem/"arg_1",2/"pid"
+		getitem/"arg_1",3/"whoami"
+		getitem/"arg_2",1/"pargs"
+		bintolist/script_bin/"script"
+		getlength/pargs/"len"
+		bintolist/pargs/"args"
+		getlistlength/"args"/"len"
+		append/"arg_count"/"vn"
+		append/len/"vv"
+		set/"si",0
+		repeat/len
+			calc/"si=si+1"
+			getitem/"args",si/"arg"
+			set/"temp","arg_",si
+			append/temp/"listn"
+			append/arg/"listc"
+		endloop
+		set/"envrt",0
+		source/$tmp_lib_envsetup
+		if/[envrt != 0]
+			set/"msg","crashed with error ",envrt
+			source/$tmp_lib_pidkmsg/255000000,msg
+			exit
+		endif
+		//set/"msg","started as user '",whoami,"'"
+		//source/$tmp_lib_pidkmsg/255255255,msg
+		getlistlength/"script"/"slen"
+		bintolist/$gl_vn/"gl_vn"
+		bintolist/$gl_vv/"gl_vv"
+		set/"si",0
+		while/[si < slen]
+			calc/"si=si+1"
+			source/$tmp_lib_envupdate
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			set/"res1",si2
+			source/$tmp_lib_rcmd
+			set/"si",res1
+		endloop
+		if/[si < slen]
+			source/$tmp_lib_pidkmsg/255255000,"Crashed for unknown reason!"
+		endif
+		//source/$tmp_lib_pidkmsg/255255255,"stopped"
+	endwarp
+}
+linkdef/"_start","start","global"
+{
+	// _start/[binary],[wait or bg],[user]/[passed arguments - in ONE input as a binary]
+	warp
+		add/$ps,1/"$ps"
+		getitem/"arg_1",1/"bin"
+		getitem/"arg_1",2/"temp"
+		getitem/"arg_1",3/"user"
+		if/[arg_count > 1]
+			getitem/"arg_2",1/"args"
+		else
+			set/"args",""
+		endif
+	endwarp
+	run/$tmp_lib_emc,temp/bin,$ps,user/args
+}

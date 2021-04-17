@@ -1,0 +1,34 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc31","emc49","global"
+{
+	// List files in a directory.
+	// 31/[path]/[output list]
+	// TO-DO: Directory read permissions!
+	getitem/"argument1",1/"in1"
+	getitem/"argument2",1/"in2"
+	_ls/in1,$rootfs/"ftypes","fnames","fdata"
+	listtobin/"fnames"/"bin"
+	getindex/"listn",in2/"ix"
+	if/[ix == 0]
+		append/in2/"listn"
+		append/bin/"listc"
+	else
+		replace/ix,bin/"listc"
+	endif
+}

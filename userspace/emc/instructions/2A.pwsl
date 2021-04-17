@@ -1,0 +1,44 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc2A","emc42","global"
+{
+	// Delete group.
+	// 2A/[group name]
+	set/"err",""
+	if/[whoami == "root"]
+		getitem/"argument1",1/"in"
+		bintolist/$GROUPS/"GROUPS"
+		getindex/"GROUPS",in/"ix"
+		if/[ix == 0]
+			set/"err","Group '",in,"' not found"
+		else
+			if/[in == "root"]
+				set/"err","Group 'root' can't be deleted"
+			else
+				deleteitem/ix/"GROUPS"
+				listtobin/"GROUPS"/"$GROUPS"
+			endif
+		endif
+	else
+		set/"err","Permission denied"
+	endif
+	if/[err != ""]
+		set/"msg","2A: Failed to delete group: ",err
+		source/$tmp_lib_pidkmsg/255000000,msg
+	endif
+}

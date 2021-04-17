@@ -1,0 +1,39 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc1","emc1","global"
+{
+	// Number: Go forward a number of lines.
+	// !Number: Jump to a line.
+	// 1/[value]
+	getitem/"argument1",1/"in"
+	getletter/in,1/"let"
+	if/[let == "!"]
+		set/"temp",""/"i2",1
+		getlength/in/"len"
+		calc/"len=len-1"
+		repeat/len
+			calc/"i2=i2+1"
+			getletter/in,i2/"let"
+			set/"temp",temp,let
+		endloop
+		calc/"si=temp-1"
+	else
+		calc/"in2=in-1"
+		calc/"si=si+in2"
+	endif
+}

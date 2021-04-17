@@ -1,0 +1,56 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc3","emc3","global"
+{
+	// The end of the last loop.
+	// 3
+	bintolist/$gl_vn/"gl_vn"
+	bintolist/$gl_vv/"gl_vv"
+	getlistlength/"loops-i"/"lil"
+	getitem/"loops-i",lil/"lit"
+	getitem/"loops-max",lil/"lit2"
+	if/[lit == 0]
+		// End of while loop.
+		smc_getarg/"script",lit2,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+		source/$tmp_lib_if/1,lit2
+		if/[go == 1]
+			getitem/"loops-id",lil/"si"
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			set/"si",si2/"res1",si2
+		else
+			deleteitem/lil/"loops-i"
+			deleteitem/lil/"loops-id"
+			deleteitem/lil/"loops-max"
+		endif
+	else
+		// End of repeat loop.
+		if/[lit < lit2]
+			calc/"new=lit+1"
+			replace/lil,new/"loops-i"
+			getitem/"loops-id",lil/"si"
+			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
+			set/"si",si2/"res1",si
+		else
+			deleteitem/lil/"loops-i"
+			deleteitem/lil/"loops-id"
+			deleteitem/lil/"loops-max"
+		endif
+	endif
+	listtobin/"gl_vn"/"$gl_vn"
+	listtobin/"gl_vv"/"$gl_vv"
+}

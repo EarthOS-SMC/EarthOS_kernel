@@ -1,0 +1,55 @@
+// EarthOS kernel - command line process
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// define - because it's used only once - when the kernel starts
+define/"kcmdline"
+{
+	if/[kacount > 1]
+		PANIC/"Only one SMC argument can be passed to the kernel."
+	endif
+	warp
+		set/"cm","Kernel command line: "
+		setlist/"KERNEL_INPUTS"
+		getlistlength/"kargs"/"inputs"
+		set/"i",0
+		while/[i < inputs]
+			calc/"i=i+1"
+			getitem/"kargs",i/"input"
+			getlength/input/"inputlen"
+			setlist/"inputparts"
+			set/"inputpart",""
+			set/"i2",0
+			while/[i2 < inputlen]
+				calc/"i2=i2+1"
+				getletter/input,i2/"letter"
+				if/[letter == "="]
+					append/inputpart/"inputparts"
+					set/"inputpart",""
+				else
+					set/"inputpart",inputpart,letter
+				endif
+			endloop
+			append/inputpart/"inputparts"
+			getitem/"inputparts",1/"setname"
+			getitem/"inputparts",2/"inputvalue"
+			set/"cm",cm,setname,"=",inputvalue," "
+			set/"setname","KERNEL_INPUT_",setname
+			set/setname,inputvalue
+		endloop
+		kmsg/"",255255255,cm
+	endwarp
+}
