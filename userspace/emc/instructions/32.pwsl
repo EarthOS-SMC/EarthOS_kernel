@@ -82,5 +82,5 @@ linkdef/"emc32","emc50","global"
 		replace/ix,group/"fgroups"
 	endif
 	// Write to parent directory
-	_writedir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
+	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
 }
