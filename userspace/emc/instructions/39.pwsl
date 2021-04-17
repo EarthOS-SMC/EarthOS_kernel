@@ -1,0 +1,63 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc39","emc57","global"
+{
+	// Create a directory.
+	// 39/[path],[permissions],[owner],[group]
+	getitem/"argument1",1/"path"
+	getitem/"argument2",1/"perms"
+	getitem/"argument2",2/"owner"
+	getitem/"argument2",3/"group"
+	// Get file name
+	source/$tmp_lib_fixpt/path/"path"
+	getitem/"parts","last"/"filename"
+	// Get absolute path of the parent directory
+	set/"path",path,"/.."
+	source/$tmp_lib_fixpt/path/"path"
+	// List files
+	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	// Check, if the directory exists
+	getindex/"fnames",filename/"ix"
+	if/[ix == 0]
+		// Process perms, owner and group
+		if/[perms == ""]
+			// Default file permissions
+			set/"perms","rw-rw-r--"
+		endif
+		if/[owner == ""]
+			// Default owner
+			set/"owner",whoami
+		endif
+		if/[group == ""]
+			// Default group
+			set/"group",whoami
+		endif
+		// Create the directory
+		append/0/"ftypes"
+		append/filename/"fnames"
+		append/""/"fdata"
+		append/perms/"fperms"
+		append/owner/"fowns"
+		append/group/"fgroups"
+	else
+		source/$tmp_lib_pidkmsg/"Unable to create directory: Already exists"
+		exit
+	endif
+	// Write to parent directory
+	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
+}
