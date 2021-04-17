@@ -18,7 +18,7 @@
 linkdef/"emc39","emc57","global"
 {
 	// Create a directory.
-	// 39/[path],[permissions],[owner],[group]
+	// 39/[path]/[permissions],[owner],[group]
 	getitem/"argument1",1/"path"
 	getitem/"argument2",1/"perms"
 	getitem/"argument2",2/"owner"
