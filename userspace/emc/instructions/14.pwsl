@@ -28,8 +28,9 @@ linkdef/"emc14","emc20","global"
 		getindex/"listn",in/"ix"
 		if/[ix == 0]
 			append/in/"listn"
-			append/""/"listc"
+			append/temp2/"listc"
+		else
+			replace/ix,temp2/"listc"
 		endif
-		replace/ix,temp2/"listc"
 	endloop
 }
