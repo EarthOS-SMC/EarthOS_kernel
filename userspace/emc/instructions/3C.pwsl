@@ -1,0 +1,27 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc3C","emc60","global"
+{
+	// Print kernel message.
+	// 3C/[process name],[color],[message]
+	getitem/"argument1",1/"in1"
+	getitem/"argument1",2/"in2"
+	getitem/"argument1",3/"in3"
+	set/"msg",in1," (pid ",pid," )"
+	source/$tmp_lib_kmsg/msg,in2,in3
+}
