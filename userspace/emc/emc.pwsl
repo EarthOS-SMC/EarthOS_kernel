@@ -24,7 +24,7 @@ linkdef/"_runcommand","rcmd","global"
 {
 	getitem/"command",1/"opcode"
 	// Uncomment if needed for debugging:
-	print/si,": ",opcode,\n
+	//print/si,": ",opcode,\n
 	if/[opcode != ""]
 		set/"opcode","0x",opcode
 		add/opcode,0/"opcode"
