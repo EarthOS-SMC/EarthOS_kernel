@@ -19,8 +19,8 @@ linkdef/"syncfs","syncfs","global"
 {
 	warp
 		// syncfs/[fs image]/[device path]
-		getitem/"arg_1",1/"fs"
-		getitem/"arg_2",2/"path"
+		getitem/"arg_1",1/"image"
+		getitem/"arg_2",1/"path"
 		set/"let","/"
 		while/[let == "/"]
 			source/$tmp_lib_rsd/path
@@ -29,6 +29,6 @@ linkdef/"syncfs","syncfs","global"
 		endloop
 		getitem/"dl",1/"d"
 		getitem/"dl",2/"pt"
-		source/$tmp_lib_wrpart/fs/d,pt
+		source/$tmp_lib_wrpart/image/d,pt
 	endwarp
 }

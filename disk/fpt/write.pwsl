@@ -24,7 +24,7 @@ linkdef/"_writedisk","wrdisk","global"
 		getitem/"arg_1",3/"ptdl"
 		getitem/"arg_2",1/"dn"
 		setlist/"ptlist"
-		getlistlength/"ptl"/"len"
+		getlistlength/ptl/"len"
 		set/"lpi",0
 		repeat/len
 			calc/"lpi=lpi+1"
@@ -39,14 +39,12 @@ linkdef/"_writedisk","wrdisk","global"
 			append/ptp/"ptlist"
 		endloop
 		listtobin/"ptlist"/"bin"
-		cpdisk/dn,1/"dbin"
-		getlength/dbin/"len1"
-		getlength/bin/"len2"
-		calc/"len=len1-len2"
-		repeat/len
-			set/"bin",bin,0
-		endloop
-		writedisk/bin/dn,4097
+		// Read MBR
+		cpdisk/dn,2/"dbin"
+		// Add MBR to new image
+		set/"bin",dbin,bin
+		getlength/bin/"dl"
+		replacedisk/bin/dn
 	endwarp
 }
 linkdef/"_writepart","wrpart","global"
@@ -56,9 +54,9 @@ linkdef/"_writepart","wrpart","global"
 		getitem/"arg_1",1/"fs"
 		getitem/"arg_2",1/"dn"
 		getitem/"arg_2",2/"ptn"
-		cpdisk/d,1/"bin"
+		cpdisk/dn,1/"bin"
 		source/$tmp_lib_lpt/bin/"pt","pts","ptd"
-		replace/ptn,bin/"ptd"
+		replace/ptn,fs/"ptd"
 		source/$tmp_lib_wrdisk/"pt","pts","ptd"/dn
 	endwarp
 }

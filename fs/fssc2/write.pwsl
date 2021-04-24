@@ -15,6 +15,40 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
+linkdef/"_writedir_lib1","wrdir_l1","global"
+{
+	// _writedir_lib1
+	// (no arguments)
+	// Used by _writedir
+	getlistlength/ilt/"len"
+	// Add number of files
+	append/len/"new"
+	set/"i2",0
+	repeat/len
+		calc/"i2=i2+1"
+		// Add type - file or folder
+		getitem/ilt,i2/"it"
+		append/it/"new"
+		// Add file name
+		getitem/iln,i2/"it"
+		append/it/"new"
+		// Add file data
+		getitem/ild,i2/"it"
+		append/it/"new"
+		// Add permissions
+		getitem/ilp,i2/"it"
+		append/it/"new"
+		// Add owner
+		getitem/ilo,i2/"it"
+		append/it/"new"
+		// Add group
+		getitem/ilg,i2/"it"
+		append/it/"new"
+		// Add attributes
+		getitem/ila,i2/"it"
+		append/it/"new"
+	endloop
+}
 linkdef/"_writedir","wrdir","global"
 {
 	warp
@@ -41,6 +75,7 @@ linkdef/"_writedir","wrdir","global"
 			// Definition path
 			calc/"i=i+1"
 			getitem/"fsl",i/"def"
+			append/def/"new"
 			// Number of files
 			calc/"i=i+1"
 			getitem/"fsl",i/"c"
@@ -49,40 +84,14 @@ linkdef/"_writedir","wrdir","global"
 					// Make sure the definition overwrites only once
 					set/"status",1
 					// Overwrite this definition
-					getlistlength/ilt/"len"
-					// Add number of files
-					append/len/"new"
-					set/"i2",0
-					repeat/len
-						calc/"i2=i2+1"
-						// Add type - file or folder
-						getitem/ilt,i2/"it"
-						append/it/"new"
-						// Add file name
-						getitem/iln,i2/"it"
-						append/it/"new"
-						// Add file data
-						getitem/ild,i2/"it"
-						append/it/"new"
-						// Add permissions
-						getitem/ilp,i2/"it"
-						append/it/"new"
-						// Add owner
-						getitem/ilo,i2/"it"
-						append/it/"new"
-						// Add group
-						getitem/ilg,i2/"it"
-						append/it/"new"
-						// Add attributes
-						getitem/ila,i2/"it"
-						append/it/"new"
-					endloop
+					source/$tmp_lib_wrdir_l1
 					// Update i
-					multi/i,7/"tmp"
+					multi/c,7/"tmp"
 					calc/"i=i+tmp"
 				endif
 			else
 				// Skip this definition
+				append/c/"new"
 				repeat/c
 					repeat/7
 						calc/"i=i+1"
@@ -92,6 +101,11 @@ linkdef/"_writedir","wrdir","global"
 				endloop
 			endif
 		endloop
+		if/[status == 0]
+			// This directory wasn't defined before
+			append/path/"new"
+			source/$tmp_lib_wrdir_l1
+		endif
 		// Save output
 		listtobin/"new"/ov
 	endwarp

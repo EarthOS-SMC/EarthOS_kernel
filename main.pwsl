@@ -26,6 +26,7 @@ include/"kernel/msg.pwsl"
 include/"kernel/panic.pwsl"
 include/"kernel/utils.pwsl
 include/"disk/fpt/fpt.pwsl"
+include/"fs/fs.pwsl"
 include/"fs/fssc2/fs.pwsl"
 include/"userspace/emc/emc.pwsl"
 include/"power/power.pwsl"

@@ -26,7 +26,7 @@ linkdef/"emc32","emc50","global"
 	getitem/"argument2",4/"group"
 	// Convert file data
 	getindex/"listn",il/"ix"
-	getitem/"listn",ix/"ild"
+	getitem/"listc",ix/"ild"
 	// Get file name
 	source/$tmp_lib_fixpt/path/"path"
 	getitem/"parts","last"/"filename"
