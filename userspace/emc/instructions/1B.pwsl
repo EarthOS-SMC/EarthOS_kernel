@@ -39,12 +39,13 @@ linkdef/"emc1B","emc27","global"
 		listtobin/"args"/"args_pass"
 		append/res1/"i_tree"
 		append/script_bin/"bin_tree"
-		source/$tmp_lib_emc,temp2/code,pid,user/args_pass
+		source/$tmp_lib_emc,"wait"/code,pid,user,1/args_pass
 		getitem/"i_tree","last"/"si"
 		getitem/"bin_tree","last"/"script_bin"
 		deleteitem/"last"/"i_tree"
 		deleteitem/"last"/"bin_tree"
 		set/"res1",si
-		listtobin/script_bin/"script"
+		bintolist/script_bin/"script"
+		getlistlength/"script"/"slen"
 	endif
 }
