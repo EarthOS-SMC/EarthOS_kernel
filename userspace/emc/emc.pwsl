@@ -24,17 +24,19 @@ linkdef/"_runcommand","rcmd","global"
 {
 	getitem/"command",1/"opcode"
 	// Uncomment if needed for debugging:
-	//print/si,": ",opcode,\n
-	set/"opcode","0x",opcode
-	add/opcode,0/"opcode"
-	set/"emcop","$tmp_lib_emc",opcode
-	readvar/emcop/"emcop"
-	source/emcop
+	print/si,": ",opcode,\n
+	if/[opcode != ""]
+		set/"opcode","0x",opcode
+		add/opcode,0/"opcode"
+		set/"emcop","$tmp_lib_emc",opcode
+		readvar/emcop/"emcop"
+		source/emcop
+	endif
 }
 linkdef/"_emc","emc","global"
 {
 	warp
-		// _emc/[binary],[pid],[user]/[passed arguments - in ONE input as a binary]
+		// _emc/[binary],[pid],[user],[1 - disable envsetup]/[passed arguments - in ONE input as a binary]
 		//
 		// It's better to run this function
 		// without screen refresh (warp)
@@ -43,6 +45,7 @@ linkdef/"_emc","emc","global"
 		getitem/"arg_1",1/"script_bin"
 		getitem/"arg_1",2/"pid"
 		getitem/"arg_1",3/"whoami"
+		getitem/"arg_1",4/"disenv"
 		getitem/"arg_2",1/"pargs"
 		bintolist/script_bin/"script"
 		getlength/pargs/"len"
@@ -59,7 +62,10 @@ linkdef/"_emc","emc","global"
 			append/arg/"listc"
 		endloop
 		set/"envrt",0
-		source/$tmp_lib_envsetup
+		if/[disenv != 1]
+			source/$tmp_lib_envsetup
+		endif
+		source/$tmp_lib_envsetup2
 		if/[envrt != 0]
 			set/"msg","crashed with error ",envrt
 			source/$tmp_lib_pidkmsg/255000000,msg
