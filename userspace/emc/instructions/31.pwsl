@@ -23,6 +23,7 @@ linkdef/"emc31","emc49","global"
 	getitem/"argument2",1/"in2"
 	// Get directory name
 	source/$tmp_lib_fixpt/in1/"in1"
+	source/$tmp_lib_fixpt/in1/"in1"
 	getitem/"parts","last"/"name"
 	// Check permissions
 	if/[in1 == "/"]
