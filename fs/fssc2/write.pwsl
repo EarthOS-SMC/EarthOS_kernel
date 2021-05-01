@@ -92,12 +92,11 @@ linkdef/"_writedir","wrdir","global"
 			else
 				// Skip this definition
 				append/c/"new"
+				multi/c,7/"c"
 				repeat/c
-					repeat/7
-						calc/"i=i+1"
-						getitem/"fsl",i/"it"
-						append/it/"new"
-					endloop
+					calc/"i=i+1"
+					getitem/"fsl",i/"it"
+					append/it/"new"
 				endloop
 			endif
 		endloop
