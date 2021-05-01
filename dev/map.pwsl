@@ -23,7 +23,8 @@ linkdef/"kmapdev","kmapdev","global"
 		listdisk/"disks"
 		getlistlength/"disks"/"dc"
 		kmsg/"",255255255,"Found ",dc," disk(s)"
-		set/"ki",0/"ab","abcdefghijklmnopqrstuvwxyz"
+		calc/"dc=dc+1"
+		set/"ki",-1/"ab","abcdefghijklmnopqrstuvwxyz"
 		getlength/ab/"abl"
 		repeat/dc
 			calc/"ki=ki+1"
@@ -31,10 +32,19 @@ linkdef/"kmapdev","kmapdev","global"
 				PANIC/"Max number of disks is 26 (for now)!"
 			endif
 			getletter/ab,ki/"let"
-			set/"mn","$/dev/sd",let
-			set/mn,ki/"mn2","sd",let
+			if/[ki == 0]
+				set/"mn","$/dev/md"
+				set/mn,ki/"mn2","md"
+			else
+				set/"mn","$/dev/sd",let
+				set/mn,ki/"mn2","sd",let
+			endif
 			cpdisk/ki,1/"dbin"
-			kmsg/"",255255255,"d",ki," -> ",mn2
+			if/[ki == 0]
+				kmsg/"",255255255,"m -> ",mn2
+			else
+				kmsg/"",255255255,"d",ki," -> ",mn2
+			endif
 			_listpart/dbin/"pt","pts","ptd"
 			getlistlength/"pt"/"pc"
 			kmsg/"",255255255,mn2,": Found ",pc," partition(s)"
@@ -44,7 +54,11 @@ linkdef/"kmapdev","kmapdev","global"
 				set/"mn3",mn,ki2
 				set/mn3,ki,",",ki2
 				set/"mn4",mn2,ki2
-				kmsg/"",255255255,"d",ki,",",ki2," -> ",mn4
+				if/[ki == 0]
+					kmsg/"",255255255,"m,",ki2," -> ",mn4
+				else
+					kmsg/"",255255255,"d",ki,",",ki2," -> ",mn4
+				endif
 			endloop
 		endloop
 	endwarp
