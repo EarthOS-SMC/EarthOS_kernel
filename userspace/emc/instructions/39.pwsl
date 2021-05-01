@@ -19,28 +19,28 @@ linkdef/"emc39","emc57","global"
 {
 	// Create a directory.
 	// 39/[path]/[permissions],[owner],[group]
-	getitem/"argument1",1/"path"
+	getitem/"argument1",1/"path3"
 	getitem/"argument2",1/"perms"
 	getitem/"argument2",2/"owner"
 	getitem/"argument2",3/"group"
 	// Get directory name
-	source/$tmp_lib_fixpt/path/"path"
-	if/[path == "/"]
+	source/$tmp_lib_fixpt/path3/"path3"
+	if/[path3 == "/"]
 		// Root dir can't be created
 		source/$tmp_lib_pidkmsg/255000000,"Unable to create '/' directory"
 		exit
 	endif
 	getitem/"parts","last"/"filename"
 	// Get absolute path of the parent directory and its name
-	set/"path",path,"/.."
-	source/$tmp_lib_fixpt/path/"path"
-	source/$tmp_lib_fixpt/path/"path"
+	set/"path3",path3,"/.."
+	source/$tmp_lib_fixpt/path3/"path3"
+	source/$tmp_lib_fixpt/path3/"path3"
 	getitem/"parts","last"/"pname"
-	if/[path == "/"]
+	if/[path3 == "/"]
 		set/"perms","rw-r--r--"/"owner","root"/"group","root"
 	else
 		// Get absolute path of the second parent directory
-		set/"path2",path,"/.."
+		set/"path2",path3,"/.."
 		source/$tmp_lib_fixpt/path2/"path2"
 		// Check permissions
 		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
@@ -57,7 +57,7 @@ linkdef/"emc39","emc57","global"
 		exit
 	endif
 	// List files
-	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	source/$tmp_lib_ls/path3,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	// Check, if the directory exists
 	getindex/"fnames",filename/"ix"
 	if/[ix == 0]
@@ -86,5 +86,5 @@ linkdef/"emc39","emc57","global"
 		exit
 	endif
 	// Write to parent directory
-	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
+	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path3,"$rootfs"
 }

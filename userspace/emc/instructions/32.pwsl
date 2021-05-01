@@ -19,7 +19,7 @@ linkdef/"emc32","emc50","global"
 {
 	// Write file.
 	// 32/[path]/[input list],[new permissions],[new owner],[new group]
-	getitem/"argument1",1/"path"
+	getitem/"argument1",1/"path2"
 	getitem/"argument2",1/"il"
 	getitem/"argument2",2/"perms"
 	getitem/"argument2",3/"owner"
@@ -28,19 +28,19 @@ linkdef/"emc32","emc50","global"
 	getindex/"listn",il/"ix"
 	getitem/"listc",ix/"ild"
 	// Get file name
-	source/$tmp_lib_fixpt/path/"path"
+	source/$tmp_lib_fixpt/path2/"path2"
 	getitem/"parts","last"/"filename"
 	// Get absolute path of the parent directory
-	set/"path",path,"/.."
-	source/$tmp_lib_fixpt/path/"path"
-	source/$tmp_lib_fixpt/path/"path"
-	if/[path == "/"]
+	set/"path2",path2,"/.."
+	source/$tmp_lib_fixpt/path2/"path2"
+	source/$tmp_lib_fixpt/path2/"path2"
+	if/[path2 == "/"]
 		set/"pname",""
 	else
 		getitem/"parts","last"/"pname"
 	endif
 	// List files
-	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	// Check, if the file exists
 	getindex/"fnames",filename/"ix"
 	if/[ix == 0]
@@ -61,10 +61,10 @@ linkdef/"emc32","emc50","global"
 			set/"perms","rw-r--r--"/"owner","root"/"group","root"
 		else
 			// Get parent directory path
-			set/"path",path,"/.."
-			source/$tmp_lib_fixpt/path/"path"
+			set/"path3",path2,"/.."
+			source/$tmp_lib_fixpt/path3/"path3"
 			// Check permissions
-			source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+			source/$tmp_lib_ls/path3,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 			getindex/"fnames",pname/"ix"
 			getitem/"fperms",ix/"perms"
 			getitem/"fowns",ix/"owner"
@@ -78,6 +78,7 @@ linkdef/"emc32","emc50","global"
 			exit
 		endif
 		// Create the file
+		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 		append/1/"ftypes"
 		append/filename/"fnames"
 		append/ild/"fdata"
@@ -96,7 +97,7 @@ linkdef/"emc32","emc50","global"
 			getitem/"fgroups",ix/"group"
 		endif
 		// Check permissions
-		source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 		getindex/"fnames",filename/"ix"
 		getitem/"fperms",ix/"perms"
 		getitem/"fowns",ix/"owner"
@@ -120,5 +121,5 @@ linkdef/"emc32","emc50","global"
 		replace/ix,group/"fgroups"
 	endif
 	// Write to parent directory
-	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path,"$rootfs"
+	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path2,"$rootfs"
 }
