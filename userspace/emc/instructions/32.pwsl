@@ -110,7 +110,7 @@ linkdef/"emc32","emc50","global"
 		// Overwrite the file
 		getitem/"ftypes",ix/"ft"
 		if/[ft == 0]
-			source/$tmp_lib_pidkmsg/"Unable to write file: Is a directory"
+			source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Is a directory"
 			exit
 		endif
 		replace/ix,filename/"fnames"

@@ -82,7 +82,7 @@ linkdef/"emc39","emc57","global"
 		append/owner/"fowns"
 		append/group/"fgroups"
 	else
-		source/$tmp_lib_pidkmsg/"Unable to create directory: Already exists"
+		source/$tmp_lib_pidkmsg/255000000,"Unable to create directory: Already exists"
 		exit
 	endif
 	// Write to parent directory
