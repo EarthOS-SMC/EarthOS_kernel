@@ -71,6 +71,10 @@ linkdef/"emc32","emc50","global"
 			getitem/"fgroups",ix/"group"
 		endif
 		source/$tmp_lib_chperms/perms,owner,group/"permout"
+		if/[permout == ""]
+			// Abort creation when parent directory doesn't exist or has some odd permissions
+			exit
+		endif
 		getletter/permout,1/"out1"
 		getletter/permout,2/"out2"
 		if/[out1 != "r"] or [out2 != "w"]

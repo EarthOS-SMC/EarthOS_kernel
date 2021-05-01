@@ -136,6 +136,10 @@ linkdef/"_checkperms","chperms","global"
 	getitem/"arg_1",2/"owner"
 	getitem/"arg_1",3/"group"
 	getitem/"arg_2",1/"out"
+	if/[perms == ""] or [owner == ""] or [group == ""]
+		set/out,""
+		exit
+	endif
 	set/out,""
 	// Read group
 	bintolist/$GROUPS/"GROUPS"
