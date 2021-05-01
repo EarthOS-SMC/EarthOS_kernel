@@ -18,10 +18,6 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
-// To-do:
-// File permissions are not yet implemented! Everything is writable by anyone.
-// This kernel can be used ONLY for debugging purposes.
-//
 include/"kernel/msg.pwsl"
 include/"kernel/panic.pwsl"
 include/"kernel/utils.pwsl

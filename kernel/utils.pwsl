@@ -126,6 +126,83 @@ linkdef/"fileop","fop","global"
 	set/"path",in,"/.."
 	// ^ This will make _fixpath ignore the last part of the path
 	source/$tmp_lib_fixpt/path/"path"
-	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata"
+	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	getindex/"fnames",gname/"ix"
+}
+linkdef/"_checkperms","chperms","global"
+{
+	// _checkperms/[permissions],[owner],[group]/[output variable]
+	getitem/"arg_1",1/"perms"
+	getitem/"arg_1",2/"owner"
+	getitem/"arg_1",3/"group"
+	getitem/"arg_2",1/"out"
+	set/out,""
+	// Read group
+	bintolist/$GROUPS/"GROUPS"
+	bintolist/$GROUP_USERS/"GROUP_USERS"
+	getindex/"GROUPS",group/"ix"
+	if/[ix == 0]
+		set/"msg","Unable to check permissions: Group '",group,"' not found"
+		source/$tmp_lib_pidkmsg/255000000,msg
+		exit
+	endif
+	getitem/"GROUP_USERS",ix/"curgrp"
+	bintolist/curgrp/"grp"
+	getindex/"grp",whoami/"ix"
+	if/[ix == 0]
+		set/"ingrp",0
+	else
+		set/"ingrp",1
+	endif
+	// Check perms
+	if/[whoami == "root"]
+		// rw
+		set/"out2","rw"
+	else
+		if/[owner == whoami]
+			// OWNER
+			// r
+			getletter/perms,1/"let"
+			set/"out2",let
+			// w
+			getletter/perms,2/"let"
+			set/"out2",out2,let
+		else
+			if/[ingrp == 1]
+				// GROUP
+				// r
+				getletter/perms,4/"let"
+				set/"out2",let
+				// w
+				getletter/perms,5/"let"
+				set/"out2",out2,let
+			else
+				// OTHERS
+				// r
+				getletter/perms,7/"let"
+				set/"out2",let
+				// w
+				getletter/perms,8/"let"
+				set/"out2",out2,let
+			endif
+		endif
+	endif
+	if/[owner == whoami]
+		// OWNER
+		// x
+		getletter/perms,3/"let"
+		set/"out2",out2,let
+	else
+		if/[ingrp == 1]
+			// GROUP
+			// x
+			getletter/perms,6/"let"
+			set/"out2",out2,let
+		else
+			// OTHERS
+			getletter/perms,9/"let"
+			set/"out2",out2,let
+		endif
+	endif
+	set/out,out2
 }

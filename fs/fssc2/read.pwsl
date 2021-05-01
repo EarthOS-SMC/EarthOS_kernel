@@ -18,13 +18,17 @@
 linkdef/"_ls","ls","global"
 {
 	warp
-		// _ls/[path],[fs image]/[output list - types],[output list - names],[output list - data]
+		// _ls/[path],[fs image]/[output list - types],[output list - names],[output list - data],[output list - permissions],[output list - owners],[output list - groups],[output list - attributes]
 		getitem/"arg_1",1/"path"
 		getitem/"arg_1",2/"fs"
 		getitem/"arg_2",1/"olt"
 		getitem/"arg_2",2/"oln"
 		getitem/"arg_2",3/"old"
-		setlist/olt,oln,old
+		getitem/"arg_2",4/"olp"
+		getitem/"arg_2",5/"olo"
+		getitem/"arg_2",6/"olg"
+		getitem/"arg_2",7/"ola"
+		setlist/olt,oln,old,olp,olo,olg,ola
 		// Convert binary
 		bintolist/fs/"fsl"
 		getlistlength/"fsl"/"fsll"
@@ -56,12 +60,26 @@ linkdef/"_ls","ls","global"
 				// File data
 				calc/"i=i+1"
 				getitem/"fsl",i/"fd"
-				// Skip permissions, owner, group and attributes
-				calc/"i=i+4"
+				// File permissions
+				calc/"i=i+1"
+				getitem/"fsl",i/"fp"
+				// File owner
+				calc/"i=i+1"
+				getitem/"fsl",i/"fo"
+				// File group
+				calc/"i=i+1"
+				getitem/"fsl",i/"fg"
+				// File attributes
+				calc/"i=i+1"
+				getitem/"fsl",i/"fa"
 				if/[def == path]
 					append/ft/olt
 					append/fn/oln
 					append/fd/old
+					append/fp/olp
+					append/fo/olo
+					append/fg/olg
+					append/fa/ola
 				endif
 				if/[ci >= c]
 					set/"loop",1

@@ -33,6 +33,12 @@ linkdef/"emc32","emc50","global"
 	// Get absolute path of the parent directory
 	set/"path",path,"/.."
 	source/$tmp_lib_fixpt/path/"path"
+	source/$tmp_lib_fixpt/path/"path"
+	if/[path == "/"]
+		set/"pname",""
+	else
+		getitem/"parts","last"/"pname"
+	endif
 	// List files
 	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	// Check, if the file exists
@@ -51,6 +57,26 @@ linkdef/"emc32","emc50","global"
 			// Default group
 			set/"group",whoami
 		endif
+		if/[pname == "/"]
+			set/"perms","rw-r--r--"/"owner","root"/"group","root"
+		else
+			// Get parent directory path
+			set/"path",path,"/.."
+			source/$tmp_lib_fixpt/path/"path"
+			// Check permissions
+			source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+			getindex/"fnames",pname/"ix"
+			getitem/"fperms",ix/"perms"
+			getitem/"fowns",ix/"owner"
+			getitem/"fgroups",ix/"group"
+		endif
+		source/$tmp_lib_chperms/perms,owner,group/"permout"
+		getletter/permout,1/"out1"
+		getletter/permout,2/"out2"
+		if/[out1 != "r"] or [out2 != "w"]
+			source/$tmp_lib_pidkmsg/255000000,"32: Unable to write to file: Permission denied"
+			exit
+		endif
 		// Create the file
 		append/1/"ftypes"
 		append/filename/"fnames"
@@ -68,6 +94,18 @@ linkdef/"emc32","emc50","global"
 		endif
 		if/[group == ""]
 			getitem/"fgroups",ix/"group"
+		endif
+		// Check permissions
+		source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		getindex/"fnames",filename/"ix"
+		getitem/"fperms",ix/"perms"
+		getitem/"fowns",ix/"owner"
+		getitem/"fgroups",ix/"group"
+		source/$tmp_lib_chperms/perms,owner,group/"permout"
+		getletter/permout,2/"out"
+		if/[out != "w"]
+			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
+			exit
 		endif
 		// Overwrite the file
 		getitem/"ftypes",ix/"ft"

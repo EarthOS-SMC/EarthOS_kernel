@@ -23,12 +23,39 @@ linkdef/"emc39","emc57","global"
 	getitem/"argument2",1/"perms"
 	getitem/"argument2",2/"owner"
 	getitem/"argument2",3/"group"
-	// Get file name
+	// Get directory name
 	source/$tmp_lib_fixpt/path/"path"
+	if/[path == "/"]
+		// Root dir can't be created
+		source/$tmp_lib_pidkmsg/255000000,"Unable to create '/' directory"
+		exit
+	endif
 	getitem/"parts","last"/"filename"
-	// Get absolute path of the parent directory
+	// Get absolute path of the parent directory and its name
 	set/"path",path,"/.."
 	source/$tmp_lib_fixpt/path/"path"
+	source/$tmp_lib_fixpt/path/"path"
+	getitem/"parts","last"/"pname"
+	if/[path == "/"]
+		set/"perms","rw-r--r--"/"owner","root"/"group","root"
+	else
+		// Get absolute path of the second parent directory
+		set/"path2",path,"/.."
+		source/$tmp_lib_fixpt/path2/"path2"
+		// Check permissions
+		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		getindex/"fnames",pname/"ix"
+		getitem/"fperms",ix/"perms"
+		getitem/"fowns",ix/"owner"
+		getitem/"fgroups",ix/"group"
+	endif
+	source/$tmp_lib_chperms/perms,owner,group/"permout"
+	getletter/permout,1/"out1"
+	getletter/permout,2/"out2"
+	if/[out1 != "r"] or [out2 != "w"]
+		source/$tmp_lib_pidkmsg/255000000,"32: Unable to create directory: Permission denied"
+		exit
+	endif
 	// List files
 	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	// Check, if the directory exists

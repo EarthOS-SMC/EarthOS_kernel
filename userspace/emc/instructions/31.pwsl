@@ -19,10 +19,31 @@ linkdef/"emc31","emc49","global"
 {
 	// List files in a directory.
 	// 31/[path]/[output list]
-	// TO-DO: Directory read permissions!
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
-	_ls/in1,$rootfs/"ftypes","fnames","fdata"
+	// Get directory name
+	source/$tmp_lib_fixpt/in1/"in1"
+	getitem/"parts","last"/"name"
+	// Check permissions
+	if/[in1 == "/"]
+		set/"perms","rw-r--r--"/"owner","root"/"group","root"
+	else
+		set/"path",in1,"/.."
+		source/$tmp_lib_fixpt/path/"path"
+		source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		getindex/"fnames",name/"ix"
+		getitem/"fperms",ix/"perms"
+		getitem/"fowns",ix/"owner"
+		getitem/"fgroups",ix/"group"
+	endif
+	source/$tmp_lib_chperms/perms,owner,group/"permout"
+	getletter/permout,1/"out"
+	if/[out != "r"]
+		source/$tmp_lib_pidkmsg/255000000,"31: Unable to read directory: Permission denied"
+		exit
+	endif
+	// List files
+	source/$tmp_lib_ls/in1,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	listtobin/"fnames"/"bin"
 	getindex/"listn",in2/"ix"
 	if/[ix == 0]

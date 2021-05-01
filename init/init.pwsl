@@ -39,7 +39,7 @@ define/"kinit"
 		kmsg/"","000255000","Verifying root filesystem..."
 		// reqdirs is a list of required directories in /
 		setlist/"reqdirs"/"dev","sys"
-		_ls/"/",$rootfs/"ftypes","fnames","fdata"
+		_ls/"/",$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 		getlistlength/"reqdirs"/"len"
 		set/"i",0
 		repeat/len
@@ -53,7 +53,7 @@ define/"kinit"
 		endloop
 		// Start init
 		kmsg/"","000255000","Executing /sbin/init"
-		_ls/"/sbin",$rootfs/"ftypes","fnames","fdata"
+		_ls/"/sbin",$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 		getlistlength/"fnames"/"fcount"
 		getindex/"fnames","init"/"ix"
 		if/[ix == 0]
