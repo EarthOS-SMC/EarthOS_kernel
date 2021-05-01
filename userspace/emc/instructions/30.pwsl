@@ -28,8 +28,8 @@ linkdef/"emc30","emc48","global"
 		if/[ix == 0]
 			set/"err","Group '",in1,"' not found"
 		else
-			bintolist/$GROUP_NAMES/"GROUP_NAMES"
-			getitem/"GROUP_NAMES",ix/"it"
+			bintolist/$GROUP_USERS/"GROUP_USERS"
+			getitem/"GROUP_USERS",ix/"it"
 			getindex/"listn",in2/"ix"
 			if/[ix == 0]
 				append/in2/"listn"
