@@ -99,6 +99,9 @@ linkdef/"_fixpath","fixpt","global"
 								set/"cur",cur,"/",it
 							endloop
 						endif
+						if/[cur == ""]
+							set/"cur","/"
+						endif
 					else
 						if/[cur == "/"]
 							set/"cur","/",part
