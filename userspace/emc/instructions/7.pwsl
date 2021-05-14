@@ -25,6 +25,6 @@ linkdef/"emc7","emc7","global"
 		append/si/"loops-id"
 		append/si/"loops-max"
 	else
-		source/$tmp_lib_skl
+		smc_skiploop/"script","si","vn","vv","gl_vn","gl_vv"/"si2","command","argument","res1"
 	endif
 }

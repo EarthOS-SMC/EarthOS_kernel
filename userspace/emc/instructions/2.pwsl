@@ -21,7 +21,7 @@ linkdef/"emc2","emc2","global"
 	// 2/[count]
 	getitem/"argument1",1/"in"
 	if/[in <= 0]
-		source/$tmp_lib_skl
+		smc_skiploop/"script","si","vn","vv","gl_vn","gl_vv"/"si2","command","argument","res1"
 		set/"opcode",""
 	else
 		append/1/"loops-i"
