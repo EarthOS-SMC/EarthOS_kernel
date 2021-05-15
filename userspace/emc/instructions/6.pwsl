@@ -19,5 +19,5 @@ linkdef/"emc6","emc6","global"
 {
 	// Else.
 	// 6
-	source/$tmp_lib_ski
+	smc_skipif/"script","si","vn","vv","gl_vn","gl_vv"/"si2","command","argument","res1"
 }
