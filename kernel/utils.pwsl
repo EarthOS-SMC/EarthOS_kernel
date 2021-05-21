@@ -44,6 +44,37 @@ linkdef/"resolvedev","rsd","global"
 		append/dlt/"dl"
 	endwarp
 }
+linkdef/"_fixpath_goup","fixpt_goup","global"
+{
+	warp
+		getlength/cur/"len2"
+		setlist/"parts2"
+		set/"part2",""/"i2",0
+		repeat/len2
+			calc/"i2=i2+1"
+			getletter/cur,i2/"let"
+			if/[let == "/"] or [i2 == len2]
+				if/[i2 > 1]
+					if/[i2 == len2]
+						set/"part2",part2,let
+					endif
+					append/part2/"parts2"
+					set/"part2",""
+				endif
+			else
+				set/"part2",part2,let
+			endif
+		endloop
+		getlistlength/"parts2"/"len2"
+		sub/len2,1/"len2"
+		set/"cur",""/"i2",0
+		repeat/len2
+			calc/"i2=i2+1"
+			getitem/"parts2",i2/"it"
+			set/"cur",cur,"/",it
+		endloop
+	endwarp
+}
 linkdef/"_fixpath","fixpt","global"
 {
 	warp
@@ -72,32 +103,7 @@ linkdef/"_fixpath","fixpt","global"
 					if/[part == ".."]
 						// Go up
 						if/[cur != "/"]
-							getlength/cur/"len2"
-							setlist/"parts2"
-							set/"part2",""/"i2",0
-							repeat/len2
-								calc/"i2=i2+1"
-								getletter/cur,i2/"let"
-								if/[let == "/"] or [i2 == len2]
-									if/[i2 > 1]
-										if/[i2 == len2]
-											set/"part2",part2,let
-										endif
-										append/part2/"parts2"
-										set/"part2",""
-									endif
-								else
-									set/"part2",part2,let
-								endif
-							endloop
-							getlistlength/"parts2"/"len2"
-							sub/len2,1/"len2"
-							set/"cur",""/"i2",0
-							repeat/len2
-								calc/"i2=i2+1"
-								getitem/"parts2",i2/"it"
-								set/"cur",cur,"/",it
-							endloop
+							source/$tmp_lib_fixpt_goup
 						endif
 						if/[cur == ""]
 							set/"cur","/"
