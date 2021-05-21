@@ -27,7 +27,7 @@ linkdef/"emc3","emc3","global"
 	if/[lit == 0]
 		// End of while loop.
 		smc_getarg/"script",lit2,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
-		source/$tmp_lib_if/1,lit2
+		smc_if/1,lit2/"script","si","vn","vv","gl_vn","gl_vv"/"si2","command","argument","res1","go"
 		if/[go == 1]
 			getitem/"loops-id",lil/"si"
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"

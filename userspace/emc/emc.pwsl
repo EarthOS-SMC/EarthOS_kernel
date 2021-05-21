@@ -17,7 +17,6 @@
 //
 include/"userspace/emc/var.pwsl"
 include/"userspace/emc/env.pwsl"
-include/"userspace/emc/utils.pwsl"
 include/"userspace/emc/instructions.pwsl"
 //
 linkdef/"_runcommand","rcmd","global"

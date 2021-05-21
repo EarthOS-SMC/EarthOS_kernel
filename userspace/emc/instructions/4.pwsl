@@ -19,5 +19,5 @@ linkdef/"emc4","emc4","global"
 {
 	// If.
 	// 4/<condition...>
-	source/$tmp_lib_if/0
+	smc_if/0/"script","si","vn","vv","gl_vn","gl_vv"/"si2","command","argument","res1","go"
 }
