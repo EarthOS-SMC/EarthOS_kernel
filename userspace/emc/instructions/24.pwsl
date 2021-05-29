@@ -21,17 +21,37 @@ linkdef/"emc24","emc36","global"
 	// 24/[path]/[output list]
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
+	set/"quit",0
 	source/$tmp_lib_fop/in1
 	// We got the file data below
 	getitem/"fdata",ix/"file"
-	if/[pseudo != ""]
-		set/"filen",file
+	// Check permissions
+	getitem/"fperms",ix/"perms"
+	getitem/"fowns",ix/"owner"
+	getitem/"fgroups",ix/"group"
+	source/$tmp_lib_chperms/perms,owner,group/"permout"
+	if/[permout == ""]
+		source/$tmp_lib_pidkmsg/255000000,"24: Unable to read file: No such file or directory"
+		set/"quit",1
+	endif
+	getletter/permout,1/"out"
+	if/[out != "r"] and [quit == 0]
+		source/$tmp_lib_pidkmsg/255000000,"24: Unable to read file: Permission denied"
+		set/"quit",1
+	endif
+	if/[quit == 0]
+		if/[pseudo != ""]
+			set/"filen",file
+			set/"file",""
+			bintolist/filen/"filel"
+			getitem/"filel",1/"tmp"
+			set/"tmp",tmp,"_read"
+			readvar/tmp/"tmp"
+			source/tmp/filen
+		endif
+	else
+		// Quit (with empty data)
 		set/"file",""
-		bintolist/filen/"filel"
-		getitem/"filel",1/"tmp"
-		set/"tmp",tmp,"_read"
-		readvar/tmp/"tmp"
-		source/tmp/filen
 	endif
 	// Now, it needs to save it in the list
 	getindex/"listn",in2/"ix"
