@@ -1,0 +1,67 @@
+// EarthOS kernel - pseudo filesystem tools
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+include/"fs/procfs/fs.pwsl"
+linkdef/"_pseudo_tool_create","ps_t_cr","global"
+{
+	warp
+		// _pseudo_tool_create/[path (inside pseudo fs)],[fs var name],[0/1 - dir/file],[perms],[owner],[group]/<file data>
+		getitem/"arg_1",1/"in1"
+		getitem/"arg_1",2/"in2"
+		getitem/"arg_1",3/"in3"
+		getitem/"arg_1",4/"in4"
+		getitem/"arg_1",5/"in5"
+		getitem/"arg_1",6/"in6"
+		listtobin/"arg_2"/"psfd"
+		readvar/in2/"psfs"
+		_fixpath/in1/"path"
+		_fixpath/path/"path"
+		getitem/"parts","last"/"psfn"
+		set/"path",path,"/.."
+		_fixpath/path/"pspath"
+		source/$tmp_lib_ls/pspath,psfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		// Type - dir/file
+		append/in3/"ftypes"
+		// Name
+		append/psfn/"fnames"
+		// Data
+		append/psfd/"fdata"
+		// Permissions
+		append/in4/"fperms"
+		// Owner
+		append/in5/"fowns"
+		// Group
+		append/in6/"fgroups"
+		// Attributes
+		append/""/"fattr"
+		source/$tmp_lib_wrdir/psfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/pspath,in2
+	endwarp
+}
+linkdef/"_pseudo_tool_init","ps_t_init","global"
+{
+	warp
+		// _pseudo_tool_init
+		// (no arguments)
+		set/"$pseudo_fs",""/"$pseudo_fs_name",""
+		// Pseudo filesystems use FSSC2! It's hardcoded,
+		// you have to rewrite some parts of this file (and included files)
+		// to change it.
+		kmsg/"",255255255,"Creating pseudo filesystems..."
+		// Default pseudo filesystems
+		_pseudo_fs_proc_setup
+	endwarp
+}

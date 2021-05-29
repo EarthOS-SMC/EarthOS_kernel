@@ -27,7 +27,7 @@ linkdef/"emc39","emc57","global"
 	source/$tmp_lib_fixpt/path3/"path3"
 	if/[path3 == "/"]
 		// Root dir can't be created
-		source/$tmp_lib_pidkmsg/255000000,"Unable to create '/' directory"
+		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create '/' directory"
 		exit
 	endif
 	getitem/"parts","last"/"filename"
@@ -36,6 +36,11 @@ linkdef/"emc39","emc57","global"
 	source/$tmp_lib_fixpt/path3/"path3"
 	source/$tmp_lib_fixpt/path3/"path3"
 	getitem/"parts","last"/"pname"
+	if/[pseudo != ""]
+		// Not supported in pseudo filesystems
+		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create directory: Permission denied"
+		exit
+	endif
 	if/[path3 == "/"]
 		set/"perms","rw-r--r--"/"owner","root"/"group","root"
 	else
@@ -57,7 +62,7 @@ linkdef/"emc39","emc57","global"
 	getletter/permout,1/"out1"
 	getletter/permout,2/"out2"
 	if/[out1 != "r"] or [out2 != "w"]
-		source/$tmp_lib_pidkmsg/255000000,"32: Unable to create directory: Permission denied"
+		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create directory: Permission denied"
 		exit
 	endif
 	// List files
@@ -86,7 +91,7 @@ linkdef/"emc39","emc57","global"
 		append/owner/"fowns"
 		append/group/"fgroups"
 	else
-		source/$tmp_lib_pidkmsg/255000000,"Unable to create directory: Already exists"
+		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create directory: Already exists"
 		exit
 	endif
 	// Write to parent directory

@@ -20,6 +20,9 @@ include/"init/cmdline.pwsl"
 // define - because it's used only once - when the kernel starts
 define/"kinit"
 {
+	// Set up pseudo filesystems
+	_pseudo_tool_init
+	// Map devices
 	kmapdev
 	// Mount rootfs
 	kmsg/"","000255000","Mounting root filesystem..."

@@ -1,0 +1,62 @@
+// EarthOS kernel - procfs
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"_pseudo_fs_proc_setup","ps_fs_proc_st","global"
+{
+	warp
+		// _pseudo_fs_proc_setup
+		// (no arguments)
+		bintolist/$pseudo_fs/"pseudo_fs"
+		bintolist/$pseudo_fs_name/"pseudo_fs_name"
+		append/"/proc"/"pseudo_fs"
+		append/"$_pseudo_fs_proc"/"pseudo_fs_name"
+		listtobin/"pseudo_fs"/"$pseudo_fs"
+		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		set/"$_pseudo_fs_proc","5;FSSC2"
+		// /proc/cmdline
+		source/$tmp_lib_ps_t_cr/"/cmdline","$_pseudo_fs_proc",1,"r--r--r--","root","root"/"$tmp_lib_ps_fi_proc_cmdline"
+	endwarp
+}
+linkdef/"_pseudo_file_proc_cmdline_read","ps_fi_proc_cmdline_read","global"
+{
+	warp
+		// _pseudo_file_proc_cmdline_read
+		// WIP
+		bintolist/$KERNEL_CMDLINE/"kargs"
+		getlistlength/"kargs"/"procl"
+		set/"cmdline",""
+		set/"proci",0
+		repeat/procl
+			calc/"proci=proci+1"
+			getitem/"kargs",proci/"it"
+			if/[proci < procl]
+				set/"cmdline",cmdline,it," "
+			else
+				set/"cmdline",cmdline,it
+			endif
+		endloop
+		setlist/"filel"/cmdline
+		listtobin/"filel"/"file"
+	endwarp
+}
+linkdef/"_pseudo_file_proc_cmdline_write","ps_fi_proc_cmdline_write","global"
+{
+	warp
+		// _pseudo_file_proc_cmdline_write
+		pidkmsg/255000000,"Unable to write file: I/O error."
+	endwarp
+}

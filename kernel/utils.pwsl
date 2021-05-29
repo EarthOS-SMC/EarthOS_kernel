@@ -79,15 +79,17 @@ linkdef/"_fixpath","fixpt","global"
 {
 	warp
 		// _fixpath/[path]/[output variable]
-		getitem/"arg_1",1/"path"
+		getitem/"arg_1",1/"fxpath"
 		getitem/"arg_2",1/"out"
-		getlength/path/"len"
-		set/"cur",pwd
+		bintolist/$pseudo_fs/"pseudo_fs"
+		bintolist/$pseudo_fs_name/"pseudo_fs_name"
+		getlength/fxpath/"len"
+		set/"cur",pwd/"pseudo",""
 		setlist/"parts"
 		set/"i",0/"part",""
 		while/[i < len]
 			calc/"i=i+1"
-			getletter/path,i/"let"
+			getletter/fxpath,i/"let"
 			if/[let == "/"] or [i == len]
 				if/[i == len]
 					set/"part",part,let
@@ -102,6 +104,12 @@ linkdef/"_fixpath","fixpt","global"
 				else
 					if/[part == ".."]
 						// Go up
+						if/[pseudo != ""]
+							readvar/out/"tmp"
+							if/[cur == "/"]
+								set/"pseudo",""/"cur",tmp
+							endif
+						endif
 						if/[cur != "/"]
 							source/$tmp_lib_fixpt_goup
 						endif
@@ -120,8 +128,21 @@ linkdef/"_fixpath","fixpt","global"
 			else
 				set/"part",part,let
 			endif
+			getindex/"pseudo_fs",cur/"ix"
+			if/[ix != 0] and [pseudo == ""]
+				// A weird workaround for the path variable being overwritten
+				setlist/"test"/cur
+				getitem/"test",1/out
+				//set/out,cur
+				set/"cur","/"
+				getitem/"pseudo_fs_name",ix/"pseudo"
+			endif
 		endloop
-		set/out,cur
+		if/[pseudo == ""]
+			set/out,cur
+		else
+			set/"pseudo_path",cur
+		endif
 	endwarp
 }
 linkdef/"fileop","fop","global"
@@ -135,7 +156,13 @@ linkdef/"fileop","fop","global"
 	set/"path",in,"/.."
 	// ^ This will make _fixpath ignore the last part of the path
 	source/$tmp_lib_fixpt/path/"path"
-	source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	if/[pseudo == ""]
+		set/"fs",$rootfs/"tmppt",path
+	else
+		readvar/pseudo/"fs"
+		set/"tmppt",pseudo_path
+	endif
+	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	getindex/"fnames",gname/"ix"
 }
 linkdef/"_checkperms","chperms","global"

@@ -40,7 +40,13 @@ linkdef/"emc32","emc50","global"
 		getitem/"parts","last"/"pname"
 	endif
 	// List files
-	source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	if/[pseudo == ""]
+		set/"fs",$rootfs/"tmppt",path2
+	else
+		readvar/pseudo/"fs"
+		set/"tmppt",pseudo_path
+	endif
+	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	// Check, if the file exists
 	getindex/"fnames",filename/"ix"
 	if/[ix == 0]
@@ -64,7 +70,13 @@ linkdef/"emc32","emc50","global"
 			set/"path3",path2,"/.."
 			source/$tmp_lib_fixpt/path3/"path3"
 			// Check permissions
-			source/$tmp_lib_ls/path3,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+			if/[pseudo == ""]
+				set/"fs",$rootfs/"tmppt",path3
+			else
+				readvar/pseudo/"fs"
+				set/"tmppt",pseudo_path
+			endif
+			source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 			getindex/"fnames",pname/"ix"
 			getitem/"fperms",ix/"perms"
 			getitem/"fowns",ix/"owner"
@@ -78,17 +90,23 @@ linkdef/"emc32","emc50","global"
 		getletter/permout,1/"out1"
 		getletter/permout,2/"out2"
 		if/[out1 != "r"] or [out2 != "w"]
-			source/$tmp_lib_pidkmsg/255000000,"32: Unable to write to file: Permission denied"
+			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
 			exit
 		endif
 		// Create the file
-		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-		append/1/"ftypes"
-		append/filename/"fnames"
-		append/ild/"fdata"
-		append/perms/"fperms"
-		append/owner/"fowns"
-		append/group/"fgroups"
+		// NOT SUPPORTED IN PSEUDO FILESYSTEMS!
+		if/[pseudo == ""]
+			source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+			append/1/"ftypes"
+			append/filename/"fnames"
+			append/ild/"fdata"
+			append/perms/"fperms"
+			append/owner/"fowns"
+			append/group/"fgroups"
+		else
+			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
+			exit
+		endif
 	else
 		// Process perms, owner and group
 		if/[perms == ""]
@@ -101,7 +119,13 @@ linkdef/"emc32","emc50","global"
 			getitem/"fgroups",ix/"group"
 		endif
 		// Check permissions
-		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		if/[pseudo == ""]
+			set/"fs",$rootfs/"tmppt",path2
+		else
+			readvar/pseudo/"fs"
+			set/"tmppt",pseudo_path
+		endif
+		source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 		getindex/"fnames",filename/"ix"
 		getitem/"fperms",ix/"perms"
 		getitem/"fowns",ix/"owner"
@@ -109,7 +133,7 @@ linkdef/"emc32","emc50","global"
 		source/$tmp_lib_chperms/perms,owner,group/"permout"
 		getletter/permout,2/"out"
 		if/[out != "w"]
-			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
+			source/$tmp_lib_pidkmsg/255000000,"32: Unable to write file: Permission denied"
 			exit
 		endif
 		// Overwrite the file
@@ -118,12 +142,38 @@ linkdef/"emc32","emc50","global"
 			source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Is a directory"
 			exit
 		endif
-		replace/ix,filename/"fnames"
-		replace/ix,ild/"fdata"
-		replace/ix,perms/"fperms"
-		replace/ix,owner/"fowns"
-		replace/ix,group/"fgroups"
+		if/[pseudo == ""]
+			replace/ix,filename/"fnames"
+			replace/ix,ild/"fdata"
+			replace/ix,perms/"fperms"
+			replace/ix,owner/"fowns"
+			replace/ix,group/"fgroups"
+		else
+			// This is a pseudo file
+			getitem/"fnames",ix/"tmp"
+			if/[tmp != filename]
+				source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Permission denied"
+				exit
+			endif
+			replace/ix,perms/"fperms"
+			replace/ix,owner/"fowns"
+			replace/ix,group/"fgroups"
+			getitem/"fdata",ix/"tmp"
+			bintolist/tmp/"tmpd"
+			getitem/"tmpd",1/"tmp"
+			getitem/"tmpd",2/"tmp2"
+			set/"tmp",tmp,"_write"
+			readvar/tmp/"tmp"
+			// Call write function
+			source/tmp/tmp2
+		endif
 	endif
 	// Write to parent directory
-	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path2,"$rootfs"
+	if/[pseudo == ""]
+		set/"fs",$rootfs/"tmppt",path2/"pseudo","$rootfs"
+	else
+		readvar/pseudo/"fs"
+		set/"tmppt",pseudo_path
+	endif
+	source/$tmp_lib_wrdir/fs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path2,pseudo
 }

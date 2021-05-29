@@ -32,8 +32,8 @@ include/"init/init.pwsl"
 warp
 	clear
 	// Prevent kernel args from overwriting
-	listtobin/"arg_1"/"kab"
-	bintolist/kab/"kargs"
+	listtobin/"arg_1"/"$KERNEL_CMDLINE"
+	bintolist/$KERNEL_CMDLINE/"kargs"
 	set/"kacount",arg_count
 	// Kernel start message
 	set/"$kstart",%time

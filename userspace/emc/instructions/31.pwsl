@@ -31,7 +31,13 @@ linkdef/"emc31","emc49","global"
 	else
 		set/"path",in1,"/.."
 		source/$tmp_lib_fixpt/path/"path"
-		source/$tmp_lib_ls/path,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		if/[pseudo == ""]
+			set/"fs2",$rootfs/"tmppt2",path
+		else
+			readvar/pseudo/"fs2"
+			set/"tmppt2",pseudo_path
+		endif
+		source/$tmp_lib_ls/tmppt2,fs2/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 		getindex/"fnames",name/"ix"
 		getitem/"fperms",ix/"perms"
 		getitem/"fowns",ix/"owner"
@@ -43,8 +49,15 @@ linkdef/"emc31","emc49","global"
 		source/$tmp_lib_pidkmsg/255000000,"31: Unable to read directory: Permission denied"
 		exit
 	endif
+	source/$tmp_lib_fixpt/in1/"in1"
+	if/[pseudo == ""]
+		set/"fs",$rootfs/"tmppt",in1
+	else
+		readvar/pseudo/"fs"
+		set/"tmppt",pseudo_path
+	endif
 	// List files
-	source/$tmp_lib_ls/in1,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	listtobin/"fnames"/"bin"
 	getindex/"listn",in2/"ix"
 	if/[ix == 0]
