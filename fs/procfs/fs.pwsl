@@ -35,7 +35,6 @@ linkdef/"_pseudo_file_proc_cmdline_read","ps_fi_proc_cmdline_read","global"
 {
 	warp
 		// _pseudo_file_proc_cmdline_read
-		// WIP
 		bintolist/$KERNEL_CMDLINE/"kargs"
 		getlistlength/"kargs"/"procl"
 		set/"cmdline",""
