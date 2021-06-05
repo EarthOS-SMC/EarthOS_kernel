@@ -78,6 +78,19 @@ linkdef/"_pseudo_fs_dev_setup","ps_fs_dev_st","global"
 				endif
 			endloop
 		endloop
+		// Devices created by drivers
+		kmsg/"",255255255,"Loading drivers..."
+		bintolist/$DRIVERS/"DRIVERS"
+		getlistlength/"DRIVERS"/"len"
+		set/"ki",0
+		repeat/len
+			calc/"ki=ki+1"
+			getitem/"DRIVERS",ki/"it"
+			kmsg/"",255255255,"Loading driver '",it,"'"
+			set/"it","$tmp_lib_drv_",it,"_st"
+			readvar/it/"it"
+			source/it
+		endloop
 	endwarp
 }
 linkdef/"_pseudo_file_dev_null_read","ps_fi_dev_null_read","global"

@@ -24,6 +24,7 @@ include/"kernel/utils.pwsl
 include/"disk/fpt/fpt.pwsl"
 include/"fs/fs.pwsl"
 include/"fs/fssc2/fs.pwsl"
+include/"dev-drivers/main.pwsl"
 include/"userspace/emc/emc.pwsl"
 include/"power/power.pwsl"
 include/"init/init.pwsl"
@@ -42,6 +43,7 @@ endwarp
 // Process args
 kcmdline
 // Init
+drvinit
 kinit
 // Panic after init stops
 PANIC/"Attempted to kill init!"
