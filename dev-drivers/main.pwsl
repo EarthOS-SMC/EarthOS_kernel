@@ -15,10 +15,11 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
+include/"dev-drivers/snd.pwsl"
 define/"drvinit"
 {
 	// Enabled drivers:
-	setlist/"DRIVERS"
+	setlist/"DRIVERS"/"snd"
 	// Make the list global (as a global var)
 	listtobin/"DRIVERS"/"$DRIVERS"
 }
