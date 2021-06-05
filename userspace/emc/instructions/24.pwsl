@@ -45,9 +45,11 @@ linkdef/"emc24","emc36","global"
 			set/"file",""
 			bintolist/filen/"filel"
 			getitem/"filel",1/"tmp"
+			deleteitem/1/"filel"
+			listtobin/"filel"/"filen"
 			set/"tmp",tmp,"_read"
 			readvar/tmp/"tmp"
-			source/tmp/filen
+			source/tmp/0/filen
 		endif
 	else
 		// Quit (with empty data)

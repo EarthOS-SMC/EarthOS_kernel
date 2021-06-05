@@ -1,0 +1,159 @@
+// EarthOS kernel - devfs
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"_pseudo_fs_dev_setup","ps_fs_dev_st","global"
+{
+	warp
+		// _pseudo_fs_dev_setup
+		// (no arguments)
+		// This also (re)maps devices
+		bintolist/$pseudo_fs/"pseudo_fs"
+		bintolist/$pseudo_fs_name/"pseudo_fs_name"
+		append/"/dev"/"pseudo_fs"
+		append/"$_pseudo_fs_dev"/"pseudo_fs_name"
+		listtobin/"pseudo_fs"/"$pseudo_fs"
+		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		set/"$_pseudo_fs_dev","5;FSSC2"
+		// /dev/null
+		source/$tmp_lib_ps_t_cr/"/null","$_pseudo_fs_dev",1,"rw-rw-rw-","root","root"/"$tmp_lib_ps_fi_dev_null"
+		// ^^^ These weird permissions are NOT an exploit!
+		// Writing to /dev/null doesn't have any effect.
+		//
+		// Disks and partitions
+		kmsg/"",255255255,"Detecting devices..."
+		listdisk/"disks"
+		getlistlength/"disks"/"dc"
+		kmsg/"",255255255,"Found ",dc," disk(s)"
+		calc/"dc=dc+1"
+		set/"ki",-1/"ab","abcdefghijklmnopqrstuvwxyz"
+		getlength/ab/"abl"
+		repeat/dc
+			calc/"ki=ki+1"
+			if/[ki > abl]
+				// TO-DO: Add support for more than 26 disks:
+				// sda, sdb, ... sdz, sdaa, sdab, ... sdaz, sdba, sdbb, ...
+				PANIC/"Max number of disks is 26 (for now)!"
+			endif
+			getletter/ab,ki/"let"
+			if/[ki == 0]
+				set/"mn2","md"
+			else
+				set/"mn2","sd",let
+			endif
+			set/"mn","/",mn2
+			source/$tmp_lib_ps_t_cr/mn,"$_pseudo_fs_dev",1,"rw-rw----","root","root"/"$tmp_lib_ps_fi_dev_generic",ki,0
+			cpdisk/ki,1/"dbin"
+			if/[ki == 0]
+				kmsg/"",255255255,"m -> ",mn2
+			else
+				kmsg/"",255255255,"d",ki," -> ",mn2
+			endif
+			_listpart/dbin/"pt","pts","ptd"
+			getlistlength/"pt"/"pc"
+			kmsg/"",255255255,mn2,": Found ",pc," partition(s)"
+			set/"ki2",0
+			repeat/pc
+				calc/"ki2=ki2+1"
+				set/"mn4",mn2,ki2
+				set/"mn3","/",mn4
+				source/$tmp_lib_ps_t_cr/mn3,"$_pseudo_fs_dev",1,"rw-rw----","root","root"/"$tmp_lib_ps_fi_dev_generic",ki,ki2
+				if/[ki == 0]
+					kmsg/"",255255255,"m,",ki2," -> ",mn4
+				else
+					kmsg/"",255255255,"d",ki,",",ki2," -> ",mn4
+				endif
+			endloop
+		endloop
+	endwarp
+}
+linkdef/"_pseudo_file_dev_null_read","ps_fi_dev_null_read","global"
+{
+	warp
+		// _pseudo_file_dev_null_read
+		set/"file",""
+	endwarp
+}
+//linkdef/"_pseudo_file_dev_null_write","ps_fi_dev_null_write","global"
+//{
+	//warp
+		// _pseudo_file_dev_nul_write
+		// Writing doesn't work here...
+	//endwarp
+//}
+linkdef/"_pseudo_file_dev_generic_read","ps_fi_dev_generic_read","global"
+{
+	warp
+		// _pseudo_file_dev_generic_read/[byte]/{[disk ID],[partition ID]}
+		// Partition ID = 0  =>  Read full disk
+		getitem/"arg_1",1/"byte"
+		getitem/"arg_2",1/"psin"
+		bintolist/psin/"arg"
+		getitem/"arg",1/"psin1"
+		getitem/"arg",2/"psin2"
+		cpdisk/psin1,1/"dbin"
+		if/[psin2 == 0]
+			set/"bin",dbin
+		else
+			_listpart/dbin/"pt","pts","ptd"
+			getitem/"ptd",psin2/"bin"
+		endif
+		if/[byte == 0]
+			set/"file",bin
+		else
+			getletter/bin,byte/"file"
+		endif
+	endwarp
+}
+linkdef/"_pseudo_file_dev_generic_write","ps_fi_dev_generic_write","global"
+{
+	warp
+		// _pseudo_file_dev_generic_write
+		// Partition ID = 0  =>  Write to disk
+		getitem/"arg_1",1/"byte"
+		getitem/"arg_2",1/"psin"
+		bintolist/psin/"arg"
+		getitem/"arg",1/"psin1"
+		getitem/"arg",2/"psin2"
+		if/[psin2 == 0]
+			if/[byte == 0]
+				replacedisk/file/psin1
+			else
+				writedisk/file/psin1,byte
+			endif
+		else
+			if/[byte == 0]
+				_writepart/file/psin1,psin2
+			else
+				cpdisk/psin1,1/"bin"
+				source/$tmp_lib_lpt/bin/"pt","pts","ptd"
+				getitem/"ptd",psin2/"bin2"
+				getlength/bin2/"len"
+				set/"bin",""/"psi",0
+				repeat/len
+					calc/"psi=psi+1"
+					if/[psi == byte]
+						set/"bin",bin,file
+					else
+						getletter/bin2,psi/"let"
+						set/"bin",bin,let
+					endif
+				endloop
+				_writepart/bin/psin1,psin2
+			endif
+		endif
+	endwarp
+}

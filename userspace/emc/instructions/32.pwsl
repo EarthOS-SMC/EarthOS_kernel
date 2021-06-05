@@ -155,17 +155,19 @@ linkdef/"emc32","emc50","global"
 				source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Permission denied"
 				exit
 			endif
+			set/"file",ild
 			replace/ix,perms/"fperms"
 			replace/ix,owner/"fowns"
 			replace/ix,group/"fgroups"
 			getitem/"fdata",ix/"tmp"
 			bintolist/tmp/"tmpd"
 			getitem/"tmpd",1/"tmp"
-			getitem/"tmpd",2/"tmp2"
+			deleteitem/1/"tmpd"
+			listtobin/"tmpd"/"tmp2"
 			set/"tmp",tmp,"_write"
 			readvar/tmp/"tmp"
 			// Call write function
-			source/tmp/tmp2
+			source/tmp/0/tmp2
 		endif
 	endif
 	// Write to parent directory

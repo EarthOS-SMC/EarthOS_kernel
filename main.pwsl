@@ -26,7 +26,6 @@ include/"fs/fs.pwsl"
 include/"fs/fssc2/fs.pwsl"
 include/"userspace/emc/emc.pwsl"
 include/"power/power.pwsl"
-include/"dev/dev.pwsl"
 include/"init/init.pwsl"
 //
 warp

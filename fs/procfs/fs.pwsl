@@ -34,7 +34,8 @@ linkdef/"_pseudo_fs_proc_setup","ps_fs_proc_st","global"
 linkdef/"_pseudo_file_proc_cmdline_read","ps_fi_proc_cmdline_read","global"
 {
 	warp
-		// _pseudo_file_proc_cmdline_read
+		// _pseudo_file_proc_cmdline_read/[byte]
+		getitem/"arg_1",1/"byte"
 		bintolist/$KERNEL_CMDLINE/"kargs"
 		getlistlength/"kargs"/"procl"
 		set/"cmdline",""
@@ -49,7 +50,12 @@ linkdef/"_pseudo_file_proc_cmdline_read","ps_fi_proc_cmdline_read","global"
 			endif
 		endloop
 		setlist/"filel"/cmdline
-		listtobin/"filel"/"file"
+		listtobin/"filel"/"cmdl"
+		if/[byte == 0]
+			set/"file",cmdl
+		else
+			getletter/cmdl,byte/"file"
+		endif
 	endwarp
 }
 linkdef/"_pseudo_file_proc_cmdline_write","ps_fi_proc_cmdline_write","global"
