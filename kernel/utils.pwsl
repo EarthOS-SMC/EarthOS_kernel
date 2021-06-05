@@ -96,7 +96,7 @@ linkdef/"_fixpath","fixpt","global"
 			calc/"i=i+1"
 			getletter/fxpath,i/"let"
 			if/[let == "/"] or [i == len]
-				if/[i == len]
+				if/[i == len] and [let != "/"]
 					set/"part",part,let
 				endif
 				if/[i == 1]
