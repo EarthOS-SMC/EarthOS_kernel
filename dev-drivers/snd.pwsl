@@ -27,7 +27,6 @@ linkdef/"driver_snd_setup","drv_snd_st","global"
 		// (no arguments)
 		//
 		// /dev/snd (dir)
-		print/"snd",\n
 		source/$tmp_lib_ps_t_cr/"/snd","$_pseudo_fs_dev",0,"rw-rw----","root","root"/
 		// /dev/snd/speaker
 		source/$tmp_lib_ps_t_cr/"/snd/speaker","$_pseudo_fs_dev",1,"rw-rw----","root","root"/"$tmp_lib_ps_fi_dev_snd_speaker"
