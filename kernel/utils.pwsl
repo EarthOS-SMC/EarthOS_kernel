@@ -47,12 +47,15 @@ linkdef/"resolvedev","rsd","global"
 linkdef/"_fixpath_goup","fixpt_goup","global"
 {
 	warp
-		getlength/cur/"len2"
+		// _fixpath_goup/[cur var name]
+		getitem/"arg_1",1/"curv"
+		readvar/curv/"ccur"
+		getlength/ccur/"len2"
 		setlist/"parts2"
 		set/"part2",""/"i2",0
 		repeat/len2
 			calc/"i2=i2+1"
-			getletter/cur,i2/"let"
+			getletter/ccur,i2/"let"
 			if/[let == "/"] or [i2 == len2]
 				if/[i2 > 1]
 					if/[i2 == len2]
@@ -67,11 +70,13 @@ linkdef/"_fixpath_goup","fixpt_goup","global"
 		endloop
 		getlistlength/"parts2"/"len2"
 		sub/len2,1/"len2"
-		set/"cur",""/"i2",0
+		set/curv,""/"i2",0
+		readvar/curv/"ccur"
 		repeat/len2
 			calc/"i2=i2+1"
 			getitem/"parts2",i2/"it"
-			set/"cur",cur,"/",it
+			readvar/curv/"ccur"
+			set/curv,ccur,"/",it
 		endloop
 	endwarp
 }
@@ -84,7 +89,7 @@ linkdef/"_fixpath","fixpt","global"
 		bintolist/$pseudo_fs/"pseudo_fs"
 		bintolist/$pseudo_fs_name/"pseudo_fs_name"
 		getlength/fxpath/"len"
-		set/"cur",pwd/"pseudo",""
+		set/"cur",pwd/"cur2",pwd/"pseudo",""
 		setlist/"parts"
 		set/"i",0/"part",""
 		while/[i < len]
@@ -95,7 +100,7 @@ linkdef/"_fixpath","fixpt","global"
 					set/"part",part,let
 				endif
 				if/[i == 1]
-					set/"part",""/"cur","/"
+					set/"part",""/"cur","/"/"cur2","/"
 				endif
 				append/part/"parts"
 				if/[part == "."] or [part == ""]
@@ -107,14 +112,20 @@ linkdef/"_fixpath","fixpt","global"
 						if/[pseudo != ""]
 							readvar/out/"tmp"
 							if/[cur == "/"]
-								set/"pseudo",""/"cur",tmp
+								set/"pseudo",""/"cur",tmp/"cur2",tmp
 							endif
 						endif
 						if/[cur != "/"]
-							source/$tmp_lib_fixpt_goup
+							source/$tmp_lib_fixpt_goup/"cur"
+						endif
+						if/[cur2 != "/"]
+							source/$tmp_lib_fixpt_goup/"cur2"
 						endif
 						if/[cur == ""]
 							set/"cur","/"
+						endif
+						if/[cur2 == ""]
+							set/"cur2","/"
 						endif
 					else
 						if/[cur == "/"]
@@ -122,25 +133,31 @@ linkdef/"_fixpath","fixpt","global"
 						else
 							set/"cur",cur,"/",part
 						endif
+						if/[cur2 == "/"]
+							set/"cur2","/",part
+						else
+							set/"cur2",cur2,"/",part
+						endif
 					endif
 				endif
 				set/"part",""
 			else
 				set/"part",part,let
 			endif
-			getindex/"pseudo_fs",cur/"ix"
-			if/[ix != 0] and [pseudo == ""]
-				// A weird workaround for the path variable being overwritten
-				setlist/"test"/cur
-				getitem/"test",1/out
-				//set/out,cur
-				set/"cur","/"
-				getitem/"pseudo_fs_name",ix/"pseudo"
+			if/[pseudo == ""]
+				getindex/"pseudo_fs",cur/"ix"
+				if/[ix != 0]
+					// A weird workaround for the path variable being overwritten
+					setlist/"test"/cur
+					getitem/"test",1/out
+					//set/out,cur
+					set/"cur","/"
+					getitem/"pseudo_fs_name",ix/"pseudo"
+				endif
 			endif
 		endloop
-		if/[pseudo == ""]
-			set/out,cur
-		else
+		set/out,cur2
+		if/[pseudo != ""]
 			set/"pseudo_path",cur
 		endif
 	endwarp
