@@ -16,6 +16,7 @@
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 include/"fs/procfs/fs.pwsl"
+include/"fs/sysfs/fs.pwsl"
 include/"fs/devfs/fs.pwsl"
 linkdef/"_pseudo_tool_create","ps_t_cr","global"
 {
@@ -64,6 +65,7 @@ linkdef/"_pseudo_tool_init","ps_t_init","global"
 		kmsg/"",255255255,"Creating pseudo filesystems..."
 		// Default pseudo filesystems
 		_pseudo_fs_proc_setup
+		_pseudo_fs_sys_setup
 		_pseudo_fs_dev_setup
 	endwarp
 }
