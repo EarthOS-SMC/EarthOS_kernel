@@ -79,6 +79,7 @@ linkdef/"_emc","emc","global"
 		while/[si < slen]
 			calc/"si=si+1"
 			source/$tmp_lib_envupdate
+			set/"return_code",""
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"res1",si2
 			source/$tmp_lib_rcmd
