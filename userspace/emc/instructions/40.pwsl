@@ -1,0 +1,152 @@
+// One of the EMC instructions...
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"emc40_exit","emc40_ex","global"
+{
+	// emc40_exit
+	// (no arguments)
+	listtobin/"foutl"/"bin"
+	getindex/"listn",fout/"ix"
+	if/[ix == 0]
+		append/fout/"listn"
+		append/bin/"listc"
+	else
+		replace/ix,bin/"listc"
+	endif
+}
+linkdef/"emc40","emc64","global"
+{
+	// Test file/dir.
+	// 3F/[path],[mode (r, w, x)],[expected type (f - file, d - directory, a - both)]/[output list]
+	//
+	// Inspired by Linux: https://mariadb.com/kb/en/operating-system-error-codes/
+	//
+	// Output:
+	// 1. Type (f, d or 0 - ENOENT)
+	// 2. Name
+	// 3. Parent directory
+	// 3. Permissions
+	// 4. Owner
+	// 5. Group
+	// 6. Read permission (0 or 1)
+	// 7. Write permission (0 or 1)
+	// 8. Execute permission (0 or 1)
+	//
+	// Note: This instruction will stop getting info about the file/dir
+	// after it finds an error. You should use the 'a' type
+	// to get as much info as possible.
+	getitem/"argument1",1/"fpath"
+	getitem/"argument1",2/"fmode"
+	getitem/"argument1",3/"ftype"
+	getitem/"argument2",1/"fout"
+	// Get file/dir name from the path
+	source/$tmp_lib_fixpt/fpath/"fpath"
+	source/$tmp_lib_fixpt/fpath/"fpath"
+	getitem/"parts","last"/"name"
+	setlist/"foutl"/"",name
+	// Get parent dir
+	if/[fpath == "/"]
+		// Root directory detected!
+		// type - d (dir)
+		replace/1,"d"/"foutl"
+		if/[ftype != "d"]
+			set/"return_code","EISDIR"
+			emc40_exit
+			exit
+		endif
+		append/"/"/"foutl"
+		set/"perms","rw-r--r--"/"owner","root"/"group","root"
+		
+	else
+		set/"fup",fpath,"/.."
+		source/$tmp_lib_fixpt/fup/"fup"
+		append/fup/"foutl"
+		if/[pseudo == ""]
+			set/"fs2",$rootfs/"tmppt2",fup
+		else
+			readvar/pseudo/"fs2"
+			set/"tmppt2",pseudo_path
+		endif
+		// Check, if the file/dir exists
+		source/$tmp_lib_ls/tmppt2,fs2/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		getindex/"fnames",name/"ix"
+		if/[ix == 0]
+			replace/1,"0"/"foutl"
+			set/"return_code","ENOENT"
+			emc40_exit
+			exit
+		endif
+		getitem/"ftypes",ix/"type"
+		if/[type == 0]
+			replace/1,"d"/"foutl"
+		else
+			replace/1,"f"/"foutl"
+		endif
+		if/[ftype == "f"] and [type != 1]
+			set/"return_code","EISDIR"
+			emc40_exit
+			exit
+		endif
+		if/[ftype == "d"] and [type != 0]
+			set/"return_code","ENOTDIR"
+			emc40_exit
+			exit
+		endif
+		getitem/"fperms",ix/"perms"
+		getitem/"fowns",ix/"owner"
+		getitem/"fgroups",ix/"group"
+	endif
+	// Check permissions
+	append/perms/"foutl"
+	append/owner/"foutl"
+	append/group/"foutl"
+	source/$tmp_lib_chperms/perms,owner,group/"permout"
+	getletter/permout,1/"out"
+	if/[out == "r"]
+		append/1/"foutl"
+	else
+		append/0/"foutl"
+		if/[fmode == "r"]
+			set/"return_code","EACCES"
+			emc40_exit
+			exit
+		endif
+	endif
+	getletter/permout,2/"out"
+	if/[out == "w"]
+		append/1/"foutl"
+	else
+		append/0/"foutl"
+		if/[fmode == "w"]
+			set/"return_code","EACCES"
+			emc40_exit
+			exit
+		endif
+	endif
+	getletter/permout,3/"out"
+	if/[out == "x"]
+		append/1/"foutl"
+	else
+		append/0/"foutl"
+		if/[fmode == "x"]
+			set/"return_code","EACCES"
+			emc40_exit
+			exit
+		endif
+	endif
+	emc40_exit
+}
