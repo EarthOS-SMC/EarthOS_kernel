@@ -23,7 +23,7 @@ linkdef/"emcB","emc11","global"
 	getitem/"argument1",1/"in1"
 	getitem/"argument1",2/"in2"
 	print/in1
-	set/"emctmp",""/"key",""
+	set/"emctmp",""/"key",""/"okey",""
 	while/[key != "enter"]
 		endwarp
 			keywait/"any"
@@ -32,11 +32,17 @@ linkdef/"emcB","emc11","global"
 		getitem/"keys",1/"key"
 		set/"nkey",key
 		endwarp
-			set/"ot",%time
+			if/[key == okey]
+				wait/0.1
+			else
+				set/"ot",%time/"nt",0
+			endif
 			while/[nkey == key] and [nt <= 1]
-				getkey/"keys"
-				getitem/"keys",1/"nkey"
-				calc/"nt=%time-ot"
+				warp
+					getkey/"keys"
+					getitem/"keys",1/"nkey"
+					calc/"nt=%time-ot"
+				endwarp
 			endloop
 		warp
 		if/[key == "enter"]
@@ -55,6 +61,7 @@ linkdef/"emcB","emc11","global"
 				endif
 			endif
 		endif
+		set/"okey",key
 	endloop
 	source/$tmp_lib_set/in2,emctmp
 }
