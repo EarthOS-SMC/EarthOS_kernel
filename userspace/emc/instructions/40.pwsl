@@ -142,12 +142,6 @@ linkdef/"emc40","emc64","global"
 	getletter/permout,3/"out"
 	if/[out == "x"]
 		append/1/"foutl"
-		// In most cases the executable file should also be readable
-		if/[fmode == "rx"] and [racc == 0]
-			set/"return_code","EACCES"
-			emc40_exit
-			exit
-		endif
 	else
 		append/0/"foutl"
 		if/[fmode == "x"]
@@ -155,6 +149,12 @@ linkdef/"emc40","emc64","global"
 			emc40_exit
 			exit
 		endif
+	endif
+	// In most cases the executable file should also be readable
+	if/[fmode == "rx"] and [racc == 0]
+		set/"return_code","EACCES"
+		emc40_exit
+		exit
 	endif
 	emc40_exit
 }
