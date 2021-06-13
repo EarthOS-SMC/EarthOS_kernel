@@ -19,11 +19,42 @@ linkdef/"emcB","emc11","global"
 {
 	// Ask and save to variable in input 2 of argument 1.
 	// B/[string],[variable]
-	// This needs more work
+	// TODO: Print characters to the current (pseudo) terminal.
 	getitem/"argument1",1/"in1"
 	getitem/"argument1",2/"in2"
-	endwarp
-		read/in1,"emctmp"
-	warp
+	print/in1
+	set/"emctmp",""/"key",""
+	while/[key != "enter"]
+		endwarp
+			keywait/"any"
+		warp
+		getkey/"keys"
+		getitem/"keys",1/"key"
+		set/"nkey",key
+		endwarp
+			set/"ot",%time
+			while/[nkey == key] and [nt <= 1]
+				getkey/"keys"
+				getitem/"keys",1/"nkey"
+				calc/"nt=%time-ot"
+			endloop
+		warp
+		if/[key == "enter"]
+			print/\n
+		else
+			if/[key == "space"]
+				print/" "
+				set/"emctmp",emctmp," "
+			else
+				set/"ra","right arrow"/"la","left arrow"
+				if/[key != ra] and [key != la]
+					if/[key != "any"]
+						print/key
+						set/"emctmp",emctmp,key
+					endif
+				endif
+			endif
+		endif
+	endloop
 	source/$tmp_lib_set/in2,emctmp
 }
