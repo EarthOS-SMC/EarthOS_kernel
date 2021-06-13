@@ -31,7 +31,7 @@ linkdef/"emc40_exit","emc40_ex","global"
 linkdef/"emc40","emc64","global"
 {
 	// Test file/dir.
-	// 3F/[path],[mode (r, w, x)],[expected type (f - file, d - directory, a - both)]/[output list]
+	// 3F/[path],[mode (r, w, x, rx)],[expected type (f - file, d - directory, a - both)]/[output list]
 	//
 	// Inspired by Linux: https://mariadb.com/kb/en/operating-system-error-codes/
 	//
@@ -118,8 +118,10 @@ linkdef/"emc40","emc64","global"
 	getletter/permout,1/"out"
 	if/[out == "r"]
 		append/1/"foutl"
+		set/"racc",1
 	else
 		append/0/"foutl"
+		set/"racc",0
 		if/[fmode == "r"]
 			set/"return_code","EACCES"
 			emc40_exit
@@ -140,6 +142,12 @@ linkdef/"emc40","emc64","global"
 	getletter/permout,3/"out"
 	if/[out == "x"]
 		append/1/"foutl"
+		// In most cases the executable file should also be readable
+		if/[fmode == "rx"] and [racc == 0]
+			set/"return_code","EACCES"
+			emc40_exit
+			exit
+		endif
 	else
 		append/0/"foutl"
 		if/[fmode == "x"]
