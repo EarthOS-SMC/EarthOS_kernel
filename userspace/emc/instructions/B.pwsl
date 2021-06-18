@@ -26,7 +26,7 @@ linkdef/"emcB","emc11","global"
 	set/"emctmp",""/"key",""/"okey",""
 	while/[key != "enter"]
 		endwarp
-			keywait/"any"
+			keywait/""
 		warp
 		getkey/"keys"
 		getitem/"keys",1/"key"
@@ -52,11 +52,26 @@ linkdef/"emcB","emc11","global"
 				print/" "
 				set/"emctmp",emctmp," "
 			else
-				set/"ra","right arrow"/"la","left arrow"
-				if/[key != ra] and [key != la]
-					if/[key != "any"]
-						print/key
-						set/"emctmp",emctmp,key
+				if/[key == "backspace"]
+					getlength/emctmp/"len"
+					if/[len > 0]
+						deletechar
+						calc/"len=len-1"
+						set/"emctmp2",""/"i2",0
+						repeat/len
+							calc/"i2=i2+1"
+							getletter/emctmp,i2/"let"
+							set/"emctmp2",emctmp2,let
+						endloop
+						set/"emctmp",emctmp2
+					endif
+				else
+					set/"ra","right arrow"/"la","left arrow"
+					if/[key != ra] and [key != la]
+						if/[key != "any"]
+							print/key
+							set/"emctmp",emctmp,key
+						endif
 					endif
 				endif
 			endif
