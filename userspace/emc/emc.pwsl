@@ -46,20 +46,11 @@ linkdef/"_emc","emc","global"
 		getitem/"arg_1",3/"whoami"
 		getitem/"arg_1",4/"disenv"
 		getitem/"arg_2",1/"pargs"
+		// Get executable code
 		bintolist/script_bin/"script"
-		getlength/pargs/"len"
+		// Get passed arguments
 		bintolist/pargs/"args"
-		getlistlength/"args"/"len"
-		append/"arg_count"/"vn"
-		append/len/"vv"
-		set/"si",0
-		repeat/len
-			calc/"si=si+1"
-			getitem/"args",si/"arg"
-			set/"temp","arg_",si
-			append/temp/"listn"
-			append/arg/"listc"
-		endloop
+		// Continue
 		set/"envrt",0
 		if/[disenv != 1]
 			source/$tmp_lib_envsetup
@@ -72,6 +63,29 @@ linkdef/"_emc","emc","global"
 		endif
 		//set/"msg","started as user '",whoami,"'"
 		//source/$tmp_lib_pidkmsg/255255255,msg
+		// Read passed arguments
+		getindex/"vn","arg_count"/"ix"
+		if/[ix == 0]
+			append/"arg_count"/"vn"
+			append/len/"vv"
+		else
+			replace/ix,len/"vv"
+		endif
+		getlistlength/"args"/"len"
+		set/"si",0
+		repeat/len
+			calc/"si=si+1"
+			getitem/"args",si/"arg"
+			set/"temp","arg_",si
+			getindex/"listn",temp/"ix"
+			if/[ix == 0]
+				append/temp/"listn"
+				append/arg/"listc"
+			else
+				replace/ix,arg/"listc"
+			endif
+		endloop
+		// Execute
 		getlistlength/"script"/"slen"
 		bintolist/$gl_vn/"gl_vn"
 		bintolist/$gl_vv/"gl_vv"

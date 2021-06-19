@@ -22,13 +22,12 @@ linkdef/"emc1B","emc27","global"
 	getitem/"argument1",1/"code"
 	getitem/"argument1",2/"temp2"
 	getitem/"argument1",3/"user"
-	calc/"c=arg_count-1"
+	calc/"c=argumentcount-1"
 	setlist/"args"
 	set/"i3",1
 	repeat/c
 		calc/"i3=i3+1"
-		calc/"temp=i3+1"
-		set/"temp","argument",temp
+		set/"temp","argument",i3
 		listtobin/temp/"bin"
 		append/bin/"args"
 	endloop
