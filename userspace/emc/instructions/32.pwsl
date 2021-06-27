@@ -35,7 +35,7 @@ linkdef/"emc32","emc50","global"
 	source/$tmp_lib_fixpt/path2/"path2"
 	source/$tmp_lib_fixpt/path2/"path2"
 	if/[path2 == "/"]
-		set/"pname",""
+		set/"pname","/"
 	else
 		getitem/"parts","last"/"pname"
 	endif
