@@ -58,7 +58,7 @@ linkdef/"_pseudo_tool_init","ps_t_init","global"
 	warp
 		// _pseudo_tool_init
 		// (no arguments)
-		set/"$pseudo_fs",""/"$pseudo_fs_name",""
+		set/"$pseudo_fs",""/"$pseudo_fs_name",""/"$pseudo_fs_arg",""
 		// Pseudo filesystems use FSSC2! It's hardcoded,
 		// you have to rewrite some parts of this file (and included files)
 		// to change it.
