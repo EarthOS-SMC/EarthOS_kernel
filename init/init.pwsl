@@ -30,21 +30,9 @@ define/"kinit"
 		endif
 		set/"$rootpath",KERNEL_INPUT_root
 		readfile/$rootpath/"file"
-		set/"file",file
 		if/[file == ""]
 			set/"it",$rootpath,": Invalid filesystem or the file doesn't exist"
 			PANIC/it
-		endif
-		if/[pseudo != ""]
-			set/"filen",file
-			set/"file",""
-			bintolist/filen/"filel"
-			getitem/"filel",1/"tmp"
-			deleteitem/1/"filel"
-			listtobin/"filel"/"filen"
-			set/"tmp",tmp,"_read"
-			readvar/tmp/"tmp"
-			source/tmp/0/filen
 		endif
 		set/"$rootfs",file
 		// Verify rootfs
