@@ -33,7 +33,6 @@ linkdef/"_mount_fs","mnt_fs","global"
 		append/mntpnt/"mount_pnt"
 		// Read filesystem file
 		run/$tmp_lib_rfile/mntfs/"$file"
-		read/$file,"dummy"
 		append/$file/"mount_fsi"
 		// Load pseudo fs lists
 		bintolist/$pseudo_fs/"pseudo_fs"
