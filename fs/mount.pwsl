@@ -1,0 +1,64 @@
+// EarthOS kernel - filesystem mount tools
+//
+//    Copyright (C) 2021  adazem009
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"_mount_fs","mnt_fs","global"
+{
+	warp
+		// _mount_fs/[path to filesystem],[path to mount point]
+		getitem/"arg_1",1/"mntfs"
+		getitem/"arg_1",2/"mntpnt"
+		// Load mount lists
+		bintolist/$mount_fs/"mount_fs"
+		bintolist/$mount_pnt/"mount_pnt"
+		bintolist/$mount_fsi/"mount_fsi"
+		// Create mount
+		append/mntfs/"mount_fs"
+		append/mntpnt/"mount_pnt"
+		// Read filesystem file
+		// TODO: Update loaded filesystem file after a process writes to it.
+		// But... is it really needed? Why would "something" overwrite a mounted filesystem?
+		// So... TODO: Prevent mounted filesystem from overwriting (Device or resource busy)
+		run/$tmp_lib_fop/mntfs,1
+		append/$file/"mount_fsi"
+		// Load pseudo fs lists
+		bintolist/$pseudo_fs/"pseudo_fs"
+		bintolist/$pseudo_fs_name/"pseudo_fs_name"
+		bintolist/$pseudo_fs_arg/"pseudo_fs_arg"
+		// Create pseudo fs
+		append/mntpnt/"pseudo_fs"
+		append/"$_pseudo_fs_mnt"/"pseudo_fs_name"
+		getlistlength/"mount_fs"/"len"
+		append/len/"pseudo_fs_arg"
+		// Save pseudo fs lists
+		listtobin/"pseudo_fs"/"$pseudo_fs"
+		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		listtobin/"pseudo_fs_arg"/"$pseudo_fs_arg"
+		// Save mount lists
+		listtobin/"mount_fs"/"$mount_fs"
+		listtobin/"mount_pnt"/"$mount_pnt"
+		listtobin/"mount_fsi"/"$mount_fsi"
+	endwarp
+}
+linkdef/"_mount_init","mnt_init","global"
+{
+	warp
+		// _mount_init
+		// (no arguments)
+		set/"$mount_fs",""/"$mount_pnt",""/"$mount_fsi",""
+		set/"$_pseudo_fs_mnt","3;mnt"
+	endwarp
+}

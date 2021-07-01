@@ -30,7 +30,7 @@ define/"kinit"
 		endif
 		set/"$rootpath",KERNEL_INPUT_root
 		fileop/$rootpath
-		getitem/"fdata",ix/"file"
+		set/"file",$file
 		if/[file == ""]
 			set/"it",$rootpath,": Invalid filesystem or the file doesn't exist"
 			PANIC/it

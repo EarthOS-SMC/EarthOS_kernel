@@ -88,6 +88,10 @@ linkdef/"_fixpath","fixpt","global"
 		getitem/"arg_2",1/"out"
 		bintolist/$pseudo_fs/"pseudo_fs"
 		bintolist/$pseudo_fs_name/"pseudo_fs_name"
+		bintolist/$pseudo_fs_arg/"pseudo_fs_arg"
+		bintolist/$mount_fs/"mount_fs"
+		bintolist/$mount_pnt/"mount_pnt"
+		bintolist/$mount_fsi/"mount_fsi"
 		getlength/fxpath/"len"
 		set/"cur",pwd/"cur2",pwd/"pseudo",""
 		setlist/"parts"
@@ -153,6 +157,13 @@ linkdef/"_fixpath","fixpt","global"
 					//set/out,cur
 					set/"cur","/"
 					getitem/"pseudo_fs_name",ix/"pseudo"
+					if/[pseudo == "$_pseudo_fs_mnt"]
+						// Mounted filesystem detected
+						getitem/"pseudo_fs_arg",ix/"tmp"
+						print/"arg: ",tmp,\n
+						getitem/"mount_fsi",tmp/"mntfsbin"
+						set/"pseudo","mntfsbin"
+					endif
 				endif
 			endif
 		endloop
@@ -164,8 +175,9 @@ linkdef/"_fixpath","fixpt","global"
 }
 linkdef/"fileop","fop","global"
 {
-	// fileop/[path]
+	// fileop/[path],[auto pseudo fs substitution (0/1 - false/true)]
 	getitem/"arg_1",1/"in"
+	getitem/"arg_1",2/"inas"
 	source/$tmp_lib_fixpt/in/"path"
 	// The last item is our file name
 	getlistlength/"parts"/"len"
@@ -181,6 +193,19 @@ linkdef/"fileop","fop","global"
 	endif
 	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	getindex/"fnames",gname/"ix"
+	getitem/"fdata",ix/"$file"
+	if/[inas == 1] and [pseudo != ""]
+		set/"filen",$file
+		set/"$file",""
+		bintolist/filen/"filel"
+		getitem/"filel",1/"tmp"
+		deleteitem/1/"filel"
+		listtobin/"filel"/"filen"
+		set/"tmp",tmp,"_read"
+		readvar/tmp/"tmp"
+		source/tmp/0/filen
+		set/"$file",file
+	endif
 }
 linkdef/"_checkperms","chperms","global"
 {

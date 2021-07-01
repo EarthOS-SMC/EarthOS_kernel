@@ -24,7 +24,7 @@ linkdef/"emc24","emc36","global"
 	set/"quit",0
 	source/$tmp_lib_fop/in1
 	// We got the file data below
-	getitem/"fdata",ix/"file"
+	set/"file",$file
 	// Check permissions
 	getitem/"fperms",ix/"perms"
 	getitem/"fowns",ix/"owner"
@@ -40,7 +40,7 @@ linkdef/"emc24","emc36","global"
 		set/"quit",1
 	endif
 	if/[quit == 0]
-		if/[pseudo != ""]
+		if/[pseudo != ""] and [pseudo != "mntfsbin"]
 			set/"filen",file
 			set/"file",""
 			bintolist/filen/"filel"

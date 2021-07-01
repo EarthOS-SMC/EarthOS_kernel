@@ -67,5 +67,7 @@ linkdef/"_pseudo_tool_init","ps_t_init","global"
 		_pseudo_fs_proc_setup
 		_pseudo_fs_sys_setup
 		_pseudo_fs_dev_setup
+		// Initialize mounting
+		_mount_init
 	endwarp
 }
