@@ -21,6 +21,6 @@ linkdef/"emc42","emc66","global"
 	// 42/[path to filesystem],[path to mount point]
 	// TODO: Add mode support
 	getitem/"argument1",1/"mntfs"
-	getitem/"argument2",2/"mntpnt"
+	getitem/"argument1",2/"mntpnt"
 	_mount_fs/mntfs,mntpnt
 }
