@@ -29,8 +29,8 @@ define/"kinit"
 			PANIC/"root parameter not specified"
 		endif
 		set/"$rootpath",KERNEL_INPUT_root
-		fileop/$rootpath
-		set/"file",$file
+		readfile/$rootpath/"file"
+		set/"file",file
 		if/[file == ""]
 			set/"it",$rootpath,": Invalid filesystem or the file doesn't exist"
 			PANIC/it

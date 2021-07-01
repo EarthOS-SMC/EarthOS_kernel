@@ -173,40 +173,6 @@ linkdef/"_fixpath","fixpt","global"
 		endif
 	endwarp
 }
-linkdef/"fileop","fop","global"
-{
-	// fileop/[path],[auto pseudo fs substitution (0/1 - false/true)]
-	getitem/"arg_1",1/"in"
-	getitem/"arg_1",2/"inas"
-	source/$tmp_lib_fixpt/in/"path"
-	// The last item is our file name
-	getlistlength/"parts"/"len"
-	getitem/"parts",len/"gname"
-	set/"path",in,"/.."
-	// ^ This will make _fixpath ignore the last part of the path
-	source/$tmp_lib_fixpt/path/"path"
-	if/[pseudo == ""]
-		set/"fs",$rootfs/"tmppt",path
-	else
-		readvar/pseudo/"fs"
-		set/"tmppt",pseudo_path
-	endif
-	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-	getindex/"fnames",gname/"ix"
-	getitem/"fdata",ix/"$file"
-	if/[inas == 1] and [pseudo != ""]
-		set/"filen",$file
-		set/"$file",""
-		bintolist/filen/"filel"
-		getitem/"filel",1/"tmp"
-		deleteitem/1/"filel"
-		listtobin/"filel"/"filen"
-		set/"tmp",tmp,"_read"
-		readvar/tmp/"tmp"
-		source/tmp/0/filen
-		set/"$file",file
-	endif
-}
 linkdef/"_checkperms","chperms","global"
 {
 	// _checkperms/[permissions],[owner],[group]/[output variable]
