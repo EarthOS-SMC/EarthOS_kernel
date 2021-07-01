@@ -27,8 +27,17 @@ linkdef/"emc32","emc50","global"
 	// Convert file data
 	getindex/"listn",il/"ix"
 	getitem/"listc",ix/"ild"
-	// Get file name
+	// Translate to absolute path
 	source/$tmp_lib_fixpt/path2/"path2"
+	// Check file availability
+	bintolist/$mount_fs/"mount_fs"
+	getindex/"mount_fs",path2/"ix"
+	if/[ix != 0]
+		// This file is mounted
+		source/$tmp_lib_pidkmsg/255000000,"32: Unable to write file: Device or resource busy"
+		exit
+	endif
+	// Get file name
 	getitem/"parts","last"/"filename"
 	// Get absolute path of the parent directory
 	set/"path2",path2,"/.."
