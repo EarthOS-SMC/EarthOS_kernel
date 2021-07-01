@@ -21,6 +21,9 @@ linkdef/"_mount_fs","mnt_fs","global"
 		// _mount_fs/[path to filesystem],[path to mount point]
 		getitem/"arg_1",1/"mntfs"
 		getitem/"arg_1",2/"mntpnt"
+		// Translate to absolute paths
+		source/$tmp_lib_fixpt/mntfs/"mntfs"
+		source/$tmp_lib_fixpt/mntpnt/"mntpnt"
 		// Load mount lists
 		bintolist/$mount_fs/"mount_fs"
 		bintolist/$mount_pnt/"mount_pnt"
