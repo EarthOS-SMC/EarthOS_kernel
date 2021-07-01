@@ -32,9 +32,6 @@ linkdef/"_mount_fs","mnt_fs","global"
 		append/mntfs/"mount_fs"
 		append/mntpnt/"mount_pnt"
 		// Read filesystem file
-		// TODO: Update loaded filesystem file after a process writes to it.
-		// But... is it really needed? Why would "something" overwrite a mounted filesystem?
-		// So... TODO: Prevent mounted filesystem from overwriting (Device or resource busy)
 		run/$tmp_lib_rfile/mntfs/"$file"
 		read/$file,"dummy"
 		append/$file/"mount_fsi"
