@@ -18,19 +18,53 @@
 linkdef/"_mount_fs","mnt_fs","global"
 {
 	warp
-		// _mount_fs/[path to filesystem],[path to mount point]
+		// _mount_fs/[path to filesystem],[path to mount point],[mode (ro/rw)]
 		getitem/"arg_1",1/"mntfs"
 		getitem/"arg_1",2/"mntpnt"
+		getitem/"arg_1",3/"mntmd"
 		// Translate to absolute paths
 		source/$tmp_lib_fixpt/mntfs/"mntfs"
 		source/$tmp_lib_fixpt/mntpnt/"mntpnt"
+		// Filesystem permission checks
+		set/"return_code",""
+		if/[mntmd == "ro"]
+			_ftest/mntfs,"r","f"/"test"
+		else
+			if/[mntmd == "rw"]
+				_ftest/mntfs,"rw","f"/"test"
+			else
+				set/"return_code","EINVAL"
+			endif
+		endif
+		if/[return_code != ""]
+			exit
+		endif
+		// Mount point permission checks
+		source/$tmp_lib_ftest/mntpnt,"w","d"/"test"
+		if/[return_code != ""]
+			exit
+		endif
 		// Load mount lists
 		bintolist/$mount_fs/"mount_fs"
 		bintolist/$mount_pnt/"mount_pnt"
 		bintolist/$mount_fsi/"mount_fsi"
+		bintolist/$mount_md/"mount_md"
+		// Check filesystem availability
+		getindex/"mount_fs",mntfs/"ix"
+		if/[ix != 0]
+			set/"return_code","EBUSY"
+			exit
+		endif
+		// Check mount point availability
+		getindex/"mount_pnt",mntpnt/"ix"
+		if/[ix != 0]
+			set/"return_code","EBUSY"
+			exit
+		endif
 		// Create mount
 		append/mntfs/"mount_fs"
 		append/mntpnt/"mount_pnt"
+		append/mntmd/"mount_md"
 		// Read filesystem file
 		run/$tmp_lib_rfile/mntfs/"$file"
 		append/$file/"mount_fsi"
