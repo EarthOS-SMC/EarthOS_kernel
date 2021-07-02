@@ -19,6 +19,16 @@ linkdef/"emc3A","emc58","global"
 {
 	// Sync filesystems.
 	// 3A
+	bintolist/$mount_fs/"mount_fs"
+	bintolist/$mount_fsi/"mount_fsi"
+	getlistlength/"mount_fs"/"len"
+	set/"i2",0
+	repeat/len
+		calc/"i2=i2+1"
+		getitem/"mount_fs",i2/"mntfs"
+		getitem/"mount_fsi",i2/"mntfsi"
+		source/$tmp_lib_syncfs/mntfsi/mntfs
+	endloop
 	// Sync root filesystem
 	source/$tmp_lib_syncfs/$rootfs/$rootpath
 }
