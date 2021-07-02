@@ -113,8 +113,20 @@ linkdef/"emc32","emc50","global"
 			append/owner/"fowns"
 			append/group/"fgroups"
 		else
-			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
-			exit
+			if/[pseudo == "mntfsbin"]
+				set/"fs2",mntfsbin
+				set/"tmppt2",pseudo_path
+				source/$tmp_lib_ls/tmppt2,fs2/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+				append/1/"ftypes"
+				append/filename/"fnames"
+				append/ild/"fdata"
+				append/perms/"fperms"
+				append/owner/"fowns"
+				append/group/"fgroups"
+			else
+				source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
+				exit
+			endif
 		endif
 	else
 		// Process perms, owner and group
@@ -158,25 +170,36 @@ linkdef/"emc32","emc50","global"
 			replace/ix,owner/"fowns"
 			replace/ix,group/"fgroups"
 		else
-			// This is a pseudo file
-			getitem/"fnames",ix/"tmp"
-			if/[tmp != filename]
-				source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Permission denied"
-				exit
+			if/[pseudo == "mntfsbin"]
+				// This file is inside a mounted filesystem
+				replace/ix,filename/"fnames"
+				replace/ix,ild/"fdata"
+				replace/ix,perms/"fperms"
+				replace/ix,owner/"fowns"
+				replace/ix,group/"fgroups"
+				
+				
+			else
+				// This is a pseudo file
+				getitem/"fnames",ix/"tmp"
+				if/[tmp != filename]
+					source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Permission denied"
+					exit
+				endif
+				set/"file",ild
+				replace/ix,perms/"fperms"
+				replace/ix,owner/"fowns"
+				replace/ix,group/"fgroups"
+				getitem/"fdata",ix/"tmp"
+				bintolist/tmp/"tmpd"
+				getitem/"tmpd",1/"tmp"
+				deleteitem/1/"tmpd"
+				listtobin/"tmpd"/"tmp2"
+				set/"tmp",tmp,"_write"
+				readvar/tmp/"tmp"
+				// Call write function
+				source/tmp/0/tmp2
 			endif
-			set/"file",ild
-			replace/ix,perms/"fperms"
-			replace/ix,owner/"fowns"
-			replace/ix,group/"fgroups"
-			getitem/"fdata",ix/"tmp"
-			bintolist/tmp/"tmpd"
-			getitem/"tmpd",1/"tmp"
-			deleteitem/1/"tmpd"
-			listtobin/"tmpd"/"tmp2"
-			set/"tmp",tmp,"_write"
-			readvar/tmp/"tmp"
-			// Call write function
-			source/tmp/0/tmp2
 		endif
 	endif
 	// Write to parent directory
@@ -187,4 +210,9 @@ linkdef/"emc32","emc50","global"
 		set/"tmppt",pseudo_path
 	endif
 	source/$tmp_lib_wrdir/fs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path2,pseudo
+	if/[pseudo == "mntfsbin"]
+		bintolist/$mount_fsi/"mount_fsi"
+		replace/mntid,mntfsbin/"mount_fsi"
+		listtobin/"mount_fsi"/"$mount_fsi"
+	endif
 }
