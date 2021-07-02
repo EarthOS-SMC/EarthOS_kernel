@@ -18,3 +18,131 @@
 include/"fs/write.pwsl"
 include/"fs/mount.pwsl"
 include/"fs/pseudo.pwsl"
+//
+linkdef/"_ftest","ftest","global"
+{
+	// _ftest/[path],[mode (r, w, x, rx, rw)],[expected type (f - file, d - directory, a - both)]/[output list]
+	//
+	// Inspired by Linux: https://mariadb.com/kb/en/operating-system-error-codes/
+	//
+	// Output:
+	// 1. Type (f, d or 0 - ENOENT)
+	// 2. Name
+	// 3. Parent directory
+	// 3. Permissions
+	// 4. Owner
+	// 5. Group
+	// 6. Read permission (0 or 1)
+	// 7. Write permission (0 or 1)
+	// 8. Execute permission (0 or 1)
+	//
+	// Note: This instruction will stop getting info about the file/dir
+	// after it finds an error. You should use the 'a' type
+	// to get as much info as possible.
+	getitem/"arg_1",1/"fpath"
+	getitem/"arg_1",2/"fmode"
+	getitem/"arg_1",3/"ftype"
+	getitem/"arg_2",1/"fout"
+	// Get file/dir name from the path
+	source/$tmp_lib_fixpt/fpath/"fpath"
+	source/$tmp_lib_fixpt/fpath/"fpath"
+	getitem/"parts","last"/"name"
+	setlist/fout/"",name
+	// Get parent dir
+	if/[fpath == "/"]
+		// Root directory detected!
+		// type - d (dir)
+		replace/1,"d"/fout
+		if/[ftype != "d"]
+			set/"return_code","EISDIR"
+			exit
+		endif
+		append/"/"/fout
+		set/"perms","rw-r--r--"/"owner","root"/"group","root"
+		
+	else
+		set/"fup",fpath,"/.."
+		source/$tmp_lib_fixpt/fup/"fup"
+		append/fup/fout
+		if/[pseudo == ""]
+			set/"fs2",$rootfs/"tmppt2",fup
+		else
+			readvar/pseudo/"fs2"
+			set/"tmppt2",pseudo_path
+		endif
+		// Check, if the file/dir exists
+		source/$tmp_lib_ls/tmppt2,fs2/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+		getindex/"fnames",name/"ix"
+		if/[ix == 0]
+			replace/1,"0"/fout
+			set/"return_code","ENOENT"
+			exit
+		endif
+		getitem/"ftypes",ix/"type"
+		if/[type == 0]
+			replace/1,"d"/fout
+		else
+			replace/1,"f"/fout
+		endif
+		if/[ftype == "f"] and [type != 1]
+			set/"return_code","EISDIR"
+			exit
+		endif
+		if/[ftype == "d"] and [type != 0]
+			set/"return_code","ENOTDIR"
+			exit
+		endif
+		getitem/"fperms",ix/"perms"
+		getitem/"fowns",ix/"owner"
+		getitem/"fgroups",ix/"group"
+	endif
+	// Check permissions
+	append/perms/fout
+	append/owner/fout
+	append/group/fout
+	source/$tmp_lib_chperms/perms,owner,group/"permout"
+	getletter/permout,1/"out"
+	if/[out == "r"]
+		append/1/fout
+		set/"racc",1
+	else
+		append/0/fout
+		set/"racc",0
+		if/[fmode == "r"]
+			set/"return_code","EACCES"
+			exit
+		endif
+	endif
+	getletter/permout,2/"out"
+	if/[out == "w"]
+		append/1/fout
+		set/"wacc",1
+	else
+		append/0/fout
+		set/"wacc",0
+		if/[fmode == "w"]
+			set/"return_code","EACCES"
+			exit
+		endif
+	endif
+	getletter/permout,3/"out"
+	if/[out == "x"]
+		append/1/fout
+	else
+		append/0/fout
+		if/[fmode == "x"]
+			set/"return_code","EACCES"
+			exit
+		endif
+	endif
+	// In most cases the executable file should also be readable
+	if/[fmode == "rx"] and [racc == 0]
+		set/"return_code","EACCES"
+		exit
+	endif
+	// There are cases where the file must be readable and writable
+	if/[racc == 0] or [wacc == 0] and [fmode == "rw"]
+		set/"return_code","EACCES"
+		exit
+	endif
+}
