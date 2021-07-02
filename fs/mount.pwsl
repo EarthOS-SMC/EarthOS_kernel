@@ -28,10 +28,10 @@ linkdef/"_mount_fs","mnt_fs","global"
 		// Filesystem permission checks
 		set/"return_code",""
 		if/[mntmd == "ro"]
-			_ftest/mntfs,"r","f"/"test"
+			source/$tmp_lib_ftest/mntfs,"r","f"/"test"
 		else
 			if/[mntmd == "rw"]
-				_ftest/mntfs,"rw","f"/"test"
+				source/$tmp_lib_ftest/mntfs,"rw","f"/"test"
 			else
 				set/"return_code","EINVAL"
 			endif
