@@ -159,8 +159,8 @@ linkdef/"_fixpath","fixpt","global"
 					getitem/"pseudo_fs_name",ix/"pseudo"
 					if/[pseudo == "$_pseudo_fs_mnt"]
 						// Mounted filesystem detected
-						getitem/"pseudo_fs_arg",ix/"tmp"
-						getitem/"mount_fsi",tmp/"mntfsbin"
+						getitem/"pseudo_fs_arg",ix/"mntid"
+						getitem/"mount_fsi",mntid/"mntfsbin"
 						set/"pseudo","mntfsbin"
 					endif
 				endif
