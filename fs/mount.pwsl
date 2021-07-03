@@ -18,31 +18,43 @@
 linkdef/"_mount_fs","mnt_fs","global"
 {
 	warp
-		// _mount_fs/[path to filesystem],[path to mount point],[mode (ro/rw)]
+		// _mount_fs/[path to filesystem],[path to mount point],[mode (ro/rw)],[type (mount/pseudo)]
 		getitem/"arg_1",1/"mntfs"
 		getitem/"arg_1",2/"mntpnt"
 		getitem/"arg_1",3/"mntmd"
+		getitem/"arg_1",4/"mnttp"
 		// Translate to absolute paths
-		source/$tmp_lib_fixpt/mntfs/"mntfs"
+		if/[mnttp != "pseudo"]
+			source/$tmp_lib_fixpt/mntfs/"mntfs"
+		endif
 		source/$tmp_lib_fixpt/mntpnt/"mntpnt"
 		// Filesystem permission checks
 		set/"return_code",""
-		if/[mntmd == "ro"]
-			source/$tmp_lib_ftest/mntfs,"r","f"/"test"
-		else
-			if/[mntmd == "rw"]
-				source/$tmp_lib_ftest/mntfs,"rw","f"/"test"
+		if/[mnttp != "pseudo"]
+			if/[mntpnt == "/"] and [whoami != "root"]
+				// Only root can mount root fs
+				set/"return_code","EACCES"
+				exit
+			endif
+			if/[mntmd == "ro"]
+				source/$tmp_lib_ftest/mntfs,"r","f"/"test"
 			else
-				set/"return_code","EINVAL"
+				if/[mntmd == "rw"]
+					source/$tmp_lib_ftest/mntfs,"rw","f"/"test"
+				else
+					set/"return_code","EINVAL"
+				endif
+			endif
+			if/[return_code != ""]
+				exit
 			endif
 		endif
-		if/[return_code != ""]
-			exit
-		endif
 		// Mount point permission checks
-		source/$tmp_lib_ftest/mntpnt,"w","d"/"test"
-		if/[return_code != ""]
-			exit
+		if/[mntpnt != "/"]
+			source/$tmp_lib_ftest/mntpnt,"w","d"/"test"
+			if/[return_code != ""]
+				exit
+			endif
 		endif
 		// Load mount lists
 		bintolist/$mount_fs/"mount_fs"
@@ -50,10 +62,12 @@ linkdef/"_mount_fs","mnt_fs","global"
 		bintolist/$mount_fsi/"mount_fsi"
 		bintolist/$mount_md/"mount_md"
 		// Check filesystem availability
-		getindex/"mount_fs",mntfs/"ix"
-		if/[ix != 0]
-			set/"return_code","EBUSY"
-			exit
+		if/[mnttp != "pseudo"]
+			getindex/"mount_fs",mntfs/"ix"
+			if/[ix != 0]
+				set/"return_code","EBUSY"
+				exit
+			endif
 		endif
 		// Check mount point availability
 		getindex/"mount_pnt",mntpnt/"ix"
@@ -66,21 +80,31 @@ linkdef/"_mount_fs","mnt_fs","global"
 		append/mntpnt/"mount_pnt"
 		append/mntmd/"mount_md"
 		// Read filesystem file
-		run/$tmp_lib_rfile/mntfs/"$file"
-		append/$file/"mount_fsi"
+		if/[mnttp == "pseudo"]
+			append/""/"mount_fsi"
+		else
+			run/$tmp_lib_rfile/mntfs/"$file"
+			append/$file/"mount_fsi"
+		endif
+		if/[mntpnt == "/"]
+			set/"$rootfs",$file/"$rootpath",mntfs
+		endif
 		// Load pseudo fs lists
 		bintolist/$pseudo_fs/"pseudo_fs"
 		bintolist/$pseudo_fs_name/"pseudo_fs_name"
 		bintolist/$pseudo_fs_arg/"pseudo_fs_arg"
 		// Create pseudo fs
-		append/mntpnt/"pseudo_fs"
-		append/"$_pseudo_fs_mnt"/"pseudo_fs_name"
-		getlistlength/"mount_fs"/"len"
-		append/len/"pseudo_fs_arg"
-		// Save pseudo fs lists
-		listtobin/"pseudo_fs"/"$pseudo_fs"
-		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
-		listtobin/"pseudo_fs_arg"/"$pseudo_fs_arg"
+		// It's not needed for root fs
+		if/[mntpnt != "/"] and [mnttp != "pseudo"]
+			append/mntpnt/"pseudo_fs"
+			append/"$_pseudo_fs_mnt"/"pseudo_fs_name"
+			getlistlength/"mount_fs"/"len"
+			append/len/"pseudo_fs_arg"
+			// Save pseudo fs lists
+			listtobin/"pseudo_fs"/"$pseudo_fs"
+			listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+			listtobin/"pseudo_fs_arg"/"$pseudo_fs_arg"
+		endif
 		// Save mount lists
 		listtobin/"mount_fs"/"$mount_fs"
 		listtobin/"mount_pnt"/"$mount_pnt"
