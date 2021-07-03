@@ -18,9 +18,10 @@
 linkdef/"_pseudo_fs_dev_setup","ps_fs_dev_st","global"
 {
 	warp
-		// _pseudo_fs_dev_setup
+		// _pseudo_fs_dev_setup/[skip mounting (1/0 - true/false)]
 		// (no arguments)
 		// This also (re)maps devices
+		getitem/"arg_1",1/"in"
 		bintolist/$pseudo_fs/"pseudo_fs"
 		bintolist/$pseudo_fs_name/"pseudo_fs_name"
 		append/"/dev"/"pseudo_fs"
@@ -28,6 +29,13 @@ linkdef/"_pseudo_fs_dev_setup","ps_fs_dev_st","global"
 		set/"$pseudo_fs_arg",$pseudo_fs_arg,"0;"
 		listtobin/"pseudo_fs"/"$pseudo_fs"
 		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		if/[in != 1]
+			_mount_fs/"devfs","/dev","rw","pseudo"
+			if/[return_code != ""]
+				set/"it","Failed to mount devfs: ",return_code
+				PANIC/it
+			endif
+		endif
 		set/"$_pseudo_fs_dev","5;FSSC2"
 		// /dev/null
 		source/$tmp_lib_ps_t_cr/"/null","$_pseudo_fs_dev",1,"rw-rw-rw-","root","root"/"$tmp_lib_ps_fi_dev_null"
