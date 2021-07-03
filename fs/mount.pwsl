@@ -83,8 +83,8 @@ linkdef/"_mount_fs","mnt_fs","global"
 		if/[mnttp == "pseudo"]
 			append/""/"mount_fsi"
 		else
-			run/$tmp_lib_rfile/mntfs/"$file"
-			append/$file/"mount_fsi"
+			source/$tmp_lib_rfile/mntfs/"file"
+			append/file/"mount_fsi"
 		endif
 		if/[mntpnt == "/"]
 			set/"$rootfs",$file/"$rootpath",mntfs
