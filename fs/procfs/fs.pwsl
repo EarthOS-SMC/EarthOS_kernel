@@ -27,6 +27,11 @@ linkdef/"_pseudo_fs_proc_setup","ps_fs_proc_st","global"
 		set/"$pseudo_fs_arg",$pseudo_fs_arg,"0;"
 		listtobin/"pseudo_fs"/"$pseudo_fs"
 		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		_mount_fs/"procfs","/proc","rw","pseudo"
+		if/[return_code != ""]
+			set/"it","Failed to mount procfs: ",return_code
+			PANIC/it
+		endif
 		set/"$_pseudo_fs_proc","5;FSSC2"
 		// /proc/cmdline
 		source/$tmp_lib_ps_t_cr/"/cmdline","$_pseudo_fs_proc",1,"r--r--r--","root","root"/"$tmp_lib_ps_fi_proc_cmdline"
