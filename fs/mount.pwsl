@@ -87,7 +87,7 @@ linkdef/"_mount_fs","mnt_fs","global"
 			append/file/"mount_fsi"
 		endif
 		if/[mntpnt == "/"]
-			set/"$rootfs",$file/"$rootpath",mntfs
+			set/"$rootfs",file/"$rootpath",mntfs
 		endif
 		// Load pseudo fs lists
 		bintolist/$pseudo_fs/"pseudo_fs"
