@@ -30,6 +30,11 @@ linkdef/"_pseudo_fs_sys_setup","ps_fs_sys_st","global"
 		set/"$pseudo_fs_arg",$pseudo_fs_arg,"0;"
 		listtobin/"pseudo_fs"/"$pseudo_fs"
 		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		_mount_fs/"sysfs","/sys","rw","pseudo"
+		if/[return_code != ""]
+			set/"it","Failed to mount sysfs: ",return_code
+			PANIC/it
+		endif
 		set/"$_pseudo_fs_sys","5;FSSC2"
 		// /sys/kernel (dir)
 		source/$tmp_lib_ps_t_cr/"/kernel","$_pseudo_fs_sys",0,"rw-r--r--","root","root"/
