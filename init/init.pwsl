@@ -20,6 +20,8 @@ include/"init/cmdline.pwsl"
 // define - because it's used only once - when the kernel starts
 define/"kinit"
 {
+	// Set up userspace
+	_userspace_setup
 	// Set up devfs (required to mount root fs)
 	_pseudo_tool_init
 	_pseudo_fs_dev_setup/1
@@ -48,7 +50,6 @@ define/"kinit"
 		else
 			readfile/"/sbin/init"/"fd"
 		endif
-		_userspace_setup
 	endwarp
 	_start/fd,"wait","root"
 }
