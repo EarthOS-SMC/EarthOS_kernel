@@ -20,46 +20,33 @@ include/"init/cmdline.pwsl"
 // define - because it's used only once - when the kernel starts
 define/"kinit"
 {
-	// Set up pseudo filesystems
+	// Set up devfs (required to mount root fs)
 	_pseudo_tool_init
+	_pseudo_fs_dev_setup/1
+	// Initialize mounting
+	_mount_init
 	// Mount rootfs
 	kmsg/"","000255000","Mounting root filesystem..."
 	warp
 		if/[KERNEL_INPUT_root == ""]
 			PANIC/"root parameter not specified"
 		endif
-		set/"$rootpath",KERNEL_INPUT_root
-		readfile/$rootpath/"file"
-		if/[file == ""]
-			set/"it",$rootpath,": Invalid filesystem or the file doesn't exist"
+		set/"return_code",""/"whoami","root"/"$rootfs",""
+		_mount_fs/KERNEL_INPUT_root,"/","rw"
+		if/[return_code != ""]
+			set/"it",KERNEL_INPUT_root,": ",return_code
 			PANIC/it
 		endif
-		set/"$rootfs",file
-		// Verify rootfs
-		kmsg/"","000255000","Verifying root filesystem..."
-		// reqdirs is a list of required directories in /
-		setlist/"reqdirs"/"dev","sys"
-		_ls/"/",$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-		getlistlength/"reqdirs"/"len"
-		set/"i",0
-		repeat/len
-			calc/"i=i+1"
-			getitem/"reqdirs",i/"it"
-			getindex/"fnames",it/"ix"
-			if/[ix == 0]
-				set/"it","/",it,": No such file or directory"
-				PANIC/it
-			endif
-		endloop
+		// Set up pseudo filesystems
+		_pseudo_tool_init
+		_pseudo_tool_setup
 		// Start init
 		kmsg/"","000255000","Executing /sbin/init"
-		_ls/"/sbin",$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-		getlistlength/"fnames"/"fcount"
-		getindex/"fnames","init"/"ix"
-		if/[ix == 0]
-			PANIC/"/sbin/init: No such file or directory"
+		_ftest/"/sbin/init","rx","f"/"test"
+		if/[return_code != ""]
+			PANIC/"/sbin/init: ",return_code,\n
 		else
-			getitem/"fdata",ix/"fd"
+			readfile/"/sbin/init"/"fd"
 		endif
 		_userspace_setup
 	endwarp
