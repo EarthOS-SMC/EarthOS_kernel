@@ -62,12 +62,23 @@ linkdef/"_pseudo_tool_init","ps_t_init","global"
 		// Pseudo filesystems use FSSC2! It's hardcoded,
 		// you have to rewrite some parts of this file (and included files)
 		// to change it.
-		kmsg/"",255255255,"Creating pseudo filesystems..."
+	endwarp
+}
+linkdef/"_pseudo_tool_setup","ps_t_st","global"
+{
+	warp
+		// _pseudo_tool_setup
+		// (no arguments)
+		//
 		// Default pseudo filesystems
+		// procfs
+		kmsg/"",255255255,"Mounting procfs..."
 		_pseudo_fs_proc_setup
+		// sysfs
+		kmsg/"",255255255,"Mounting sysfs..."
 		_pseudo_fs_sys_setup
+		// devfs
+		kmsg/"",255255255,"Mounting devfs..."
 		_pseudo_fs_dev_setup
-		// Initialize mounting
-		_mount_init
 	endwarp
 }
