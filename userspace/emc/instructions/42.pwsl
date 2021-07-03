@@ -22,5 +22,5 @@ linkdef/"emc42","emc66","global"
 	getitem/"argument1",1/"mntfs"
 	getitem/"argument1",2/"mntpnt"
 	getitem/"argument1",3/"mntmd"
-	_mount_fs/mntfs,mntpnt,mntmd
+	_mount_fs/mntfs,mntpnt,mntmd,"mount"
 }
