@@ -113,8 +113,8 @@ linkdef/"_ftest","ftest","global"
 			exit
 		endif
 	endif
-	getletter/permout,2/"out"
 	source/$tmp_lib_fixpt/fpath/"fpath"
+	getletter/permout,2/"out"
 	bintolist/$mount_pnt/"mount_pnt2"
 	bintolist/$mount_md/"mount_md2"
 	if/[pseudo == "mntfsbin"]
