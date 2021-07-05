@@ -115,8 +115,17 @@ linkdef/"_ftest","ftest","global"
 	endif
 	source/$tmp_lib_fixpt/fpath/"fpath"
 	getletter/permout,2/"out"
+	bintolist/$mount_fs/"mount_fs2"
 	bintolist/$mount_pnt/"mount_pnt2"
 	bintolist/$mount_md/"mount_md2"
+	getindex/"mount_fs2",fpath/"ix"
+	if/[ix != 0]
+		// This file is mounted
+		if/[fmode == "w"] or [fmode == "rw"]
+			set/"return_code","EBUSY"
+			exit
+		endif
+	endif
 	if/[pseudo == "mntfsbin"]
 		getitem/"mount_md2",mntid/"md"
 	else
