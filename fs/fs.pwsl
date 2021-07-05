@@ -114,14 +114,35 @@ linkdef/"_ftest","ftest","global"
 		endif
 	endif
 	getletter/permout,2/"out"
+	source/$tmp_lib_fixpt/fpath/"fpath"
+	bintolist/$mount_pnt/"mount_pnt2"
+	bintolist/$mount_md/"mount_md2"
+	if/[pseudo == "mntfsbin"]
+		getitem/"mount_md2",mntid/"md"
+	else
+		getindex/"mount_pnt2","/"/"ix"
+		getitem/"mount_md2",ix/"md"
+	endif
+	if/[md == "ro"]
+		set/"out","r"
+	endif
 	if/[out == "w"]
 		append/1/fout
 		set/"wacc",1
 	else
 		append/0/fout
-		set/"wacc",0
+		if/[out == "r"]
+			// Read-only filesystem
+			set/"wacc",2
+		else
+			set/"wacc",0
+		endif
 		if/[fmode == "w"]
-			set/"return_code","EACCES"
+			if/[wacc == 2]
+				set/"return_code","EROFS"
+			else
+				set/"return_code","EACCES"
+			endif
 			exit
 		endif
 	endif
@@ -141,8 +162,14 @@ linkdef/"_ftest","ftest","global"
 		exit
 	endif
 	// There are cases where the file must be readable and writable
-	if/[racc == 0] or [wacc == 0] and [fmode == "rw"]
-		set/"return_code","EACCES"
-		exit
+	if/[racc == 0] or [wacc == 0] or [wacc == 2]
+		if/[fmode == "rw"]
+			if/[wacc == 2]
+				set/"return_code","EROFS"
+			else
+				set/"return_code","EACCES"
+			endif
+			exit
+		endif
 	endif
 }
