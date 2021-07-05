@@ -20,16 +20,16 @@ include/"init/cmdline.pwsl"
 // define - because it's used only once - when the kernel starts
 define/"kinit"
 {
-	// Set up userspace
-	_userspace_setup
-	// Set up devfs (required to mount root fs)
-	_pseudo_tool_init
-	_pseudo_fs_dev_setup/1
-	// Initialize mounting
-	_mount_init
-	// Mount rootfs
-	kmsg/"","000255000","Mounting root filesystem..."
 	warp
+		// Set up userspace
+		_userspace_setup
+		// Set up devfs (required to mount root fs)
+		_pseudo_tool_init
+		_pseudo_fs_dev_setup/1
+		// Initialize mounting
+		_mount_init
+		// Mount rootfs
+		kmsg/"","000255000","Mounting root filesystem..."
 		if/[KERNEL_INPUT_root == ""]
 			PANIC/"root parameter not specified"
 		endif
