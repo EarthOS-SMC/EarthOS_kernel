@@ -114,7 +114,7 @@ linkdef/"_mount_fs","mnt_fs","global"
 		listtobin/"mount_fs"/"$mount_fs"
 		listtobin/"mount_pnt"/"$mount_pnt"
 		listtobin/"mount_fsi"/"$mount_fsi"
-		listtobin/"mount_fsi"/"$mount_md"
+		listtobin/"mount_md"/"$mount_md"
 	endwarp
 }
 linkdef/"_mount_init","mnt_init","global"
