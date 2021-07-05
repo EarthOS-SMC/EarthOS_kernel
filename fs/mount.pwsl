@@ -109,6 +109,7 @@ linkdef/"_mount_fs","mnt_fs","global"
 		listtobin/"mount_fs"/"$mount_fs"
 		listtobin/"mount_pnt"/"$mount_pnt"
 		listtobin/"mount_fsi"/"$mount_fsi"
+		listtobin/"mount_fsi"/"$mount_md"
 	endwarp
 }
 linkdef/"_mount_init","mnt_init","global"
@@ -117,6 +118,7 @@ linkdef/"_mount_init","mnt_init","global"
 		// _mount_init
 		// (no arguments)
 		set/"$mount_fs",""/"$mount_pnt",""/"$mount_fsi",""
+		set/"$mount_md",""
 		set/"$_pseudo_fs_mnt","3;mnt"
 	endwarp
 }
