@@ -40,7 +40,9 @@ linkdef/"_mount_fs","mnt_fs","global"
 				source/$tmp_lib_ftest/mntfs,"r","f"/"test"
 			else
 				if/[mntmd == "rw"]
-					source/$tmp_lib_ftest/mntfs,"rw","f"/"test"
+					if/[mntpnt != "/"]
+						source/$tmp_lib_ftest/mntfs,"rw","f"/"test"
+					endif
 				else
 					set/"return_code","EINVAL"
 				endif
@@ -51,7 +53,10 @@ linkdef/"_mount_fs","mnt_fs","global"
 		endif
 		// Mount point permission checks
 		if/[mntpnt != "/"]
-			source/$tmp_lib_ftest/mntpnt,"w","d"/"test"
+			source/$tmp_lib_ftest/mntpnt,"r","d"/"test"
+			if/[mnttp == "pseudo"] and [return_code == "EACCES"]
+				set/"return_code",""
+			endif
 			if/[return_code != ""]
 				exit
 			endif
