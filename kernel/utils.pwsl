@@ -89,9 +89,7 @@ linkdef/"_fixpath","fixpt","global"
 		bintolist/$pseudo_fs/"pseudo_fs"
 		bintolist/$pseudo_fs_name/"pseudo_fs_name"
 		bintolist/$pseudo_fs_arg/"pseudo_fs_arg"
-		bintolist/$mount_fs/"mount_fs"
-		bintolist/$mount_pnt/"mount_pnt"
-		bintolist/$mount_fsi/"mount_fsi"
+		bintolist/$mount_fsi/"mount_fsi2"
 		getlength/fxpath/"len"
 		set/"cur",pwd/"cur2",pwd/"pseudo",""
 		setlist/"parts"
@@ -160,7 +158,7 @@ linkdef/"_fixpath","fixpt","global"
 					if/[pseudo == "$_pseudo_fs_mnt"]
 						// Mounted filesystem detected
 						getitem/"pseudo_fs_arg",ix/"mntid"
-						getitem/"mount_fsi",mntid/"mntfsbin"
+						getitem/"mount_fsi2",mntid/"mntfsbin"
 						set/"pseudo","mntfsbin"
 					endif
 				endif
