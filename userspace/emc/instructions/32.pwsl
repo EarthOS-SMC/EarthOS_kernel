@@ -15,169 +15,108 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
+linkdef/"emc32_ls","em32_ls","global"
+{
+	// emc32_ls/[pass required (1/0 - true/false)]
+	getitem/"arg_1",1/"pass"
+	// Check parent directory
+	_ftest/path2,"r","d"/"ftest"
+	// Get parent directory name
+	getitem/"ftest",2/"pname"
+	if/[return_code != ""] and [pass == 1]
+		exit
+	endif
+	// List files in parent directory
+	source/$tmp_lib_fixpt/path2/"path2"
+	if/[pseudo == ""]
+		set/"fs",$rootfs/"tmppt",path2
+	else
+		// Creating isn't supported in pseudo filesystems
+		if/[pseudo != "mntfsbin"]
+			set/"return_code","EIO"
+			exit
+		endif
+		readvar/pseudo/"fs"
+		set/"tmppt",pseudo_path
+	endif
+	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+}
 linkdef/"emc32","emc50","global"
 {
 	// Write file.
 	// 32/[path]/[input list],[new permissions],[new owner],[new group]
 	getitem/"argument1",1/"path2"
 	getitem/"argument2",1/"il"
-	getitem/"argument2",2/"perms"
-	getitem/"argument2",3/"owner"
-	getitem/"argument2",4/"group"
+	getitem/"argument2",2/"nperms"
+	getitem/"argument2",3/"nowner"
+	getitem/"argument2",4/"ngroup"
 	// Convert file data
 	getindex/"listn",il/"ix"
 	getitem/"listc",ix/"ild"
-	// Translate to absolute path
-	source/$tmp_lib_fixpt/path2/"path2"
-	// Check file availability
-	bintolist/$mount_fs/"mount_fs"
-	getindex/"mount_fs",path2/"ix"
-	if/[ix != 0]
-		// This file is mounted
-		source/$tmp_lib_pidkmsg/255000000,"32: Unable to write file: Device or resource busy"
-		exit
-	endif
+	// Use ftest to check the file
+	_ftest/path2,"w","f"/"ftest"
 	// Get file name
-	getitem/"parts","last"/"filename"
-	// Get absolute path of the parent directory
-	set/"path2",path2,"/.."
-	source/$tmp_lib_fixpt/path2/"path2"
-	source/$tmp_lib_fixpt/path2/"path2"
-	if/[path2 == "/"]
-		set/"pname","/"
-	else
-		getitem/"parts","last"/"pname"
-	endif
-	// List files
-	if/[pseudo == ""]
-		set/"fs",$rootfs/"tmppt",path2
-	else
-		readvar/pseudo/"fs"
-		set/"tmppt",pseudo_path
-	endif
-	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-	// Check, if the file exists
-	getindex/"fnames",filename/"ix"
-	if/[ix == 0]
-		// Process perms, owner and group
-		if/[perms == ""]
-			// Default file permissions
-			set/"perms","rw-rw-r--"
-		endif
-		if/[owner == ""]
-			// Default owner
-			set/"owner",whoami
-		endif
-		if/[group == ""]
-			// Default group
-			set/"group",whoami
-		endif
-		if/[pname == "/"]
-			set/"perms","rw-r--r--"/"owner","root"/"group","root"
-		else
-			// Get parent directory path
-			set/"path3",path2,"/.."
-			source/$tmp_lib_fixpt/path3/"path3"
-			// Check permissions
-			if/[pseudo == ""]
-				set/"fs",$rootfs/"tmppt",path3
-			else
-				readvar/pseudo/"fs"
-				set/"tmppt",pseudo_path
+	getitem/"ftest",2/"filename"
+	// Get parent directory path
+	getitem/"ftest",3/"path2"
+	if/[return_code != ""]
+		if/[return_code == "ENOENT"]
+			source/$tmp_lib_emc32_ls/1
+			// Process perms, owner and group
+			if/[nperms == ""]
+				// Default file permissions
+				set/"nperms","rw-rw-r--"
 			endif
-			source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-			getindex/"fnames",pname/"ix"
-			getitem/"fperms",ix/"perms"
-			getitem/"fowns",ix/"owner"
-			getitem/"fgroups",ix/"group"
-		endif
-		source/$tmp_lib_chperms/perms,owner,group/"permout"
-		if/[permout == ""]
-			// Abort creation when parent directory doesn't exist or has some odd permissions
-			exit
-		endif
-		getletter/permout,1/"out1"
-		getletter/permout,2/"out2"
-		if/[out1 != "r"] or [out2 != "w"]
-			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
-			exit
-		endif
-		// Create the file
-		// NOT SUPPORTED IN PSEUDO FILESYSTEMS!
-		source/$tmp_lib_fixpt/path2/"path2"
-		if/[pseudo == ""] or [pseudo == "mntfsbin"]
-			if/[pseudo == "mntfsbin"]
-				set/"fs",mntfsbin
-				set/"tmppt",pseudo_path
-			else
-				set/"fs",$rootfs
-				set/"tmppt",path2
+			if/[nowner == ""]
+				// Default owner
+				set/"nowner",whoami
 			endif
-			source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+			if/[ngroup == ""]
+				// Default group
+				set/"ngroup",whoami
+			endif
+			// Create the file
 			append/1/"ftypes"
 			append/filename/"fnames"
 			append/ild/"fdata"
-			append/perms/"fperms"
-			append/owner/"fowns"
-			append/group/"fgroups"
+			append/nperms/"fperms"
+			append/nowner/"fowns"
+			append/ngroup/"fgroups"
 		else
-			source/$tmp_lib_pidkmsg/255000000,"32: Unable to create file: Permission denied"
 			exit
 		endif
 	else
+		source/$tmp_lib_emc32_ls/0
+		getindex/"fnames",filename/"ix"
 		// Process perms, owner and group
-		if/[perms == ""]
-			getitem/"fperms",ix/"perms"
+		if/[nperms == ""]
+			getitem/"fperms",ix/"nperms"
 		endif
-		if/[owner == ""]
-			getitem/"fowns",ix/"owner"
+		if/[nowner == ""]
+			getitem/"fowns",ix/"nowner"
 		endif
-		if/[group == ""]
-			getitem/"fgroups",ix/"group"
-		endif
-		// Check permissions
-		if/[pseudo == ""]
-			set/"fs",$rootfs/"tmppt",path2
-		else
-			readvar/pseudo/"fs"
-			set/"tmppt",pseudo_path
-		endif
-		source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-		getindex/"fnames",filename/"ix2"
-		getitem/"fperms",ix2/"perms"
-		getitem/"fowns",ix2/"owner"
-		getitem/"fgroups",ix2/"group"
-		source/$tmp_lib_chperms/perms,owner,group/"permout"
-		getletter/permout,2/"out"
-		if/[out != "w"]
-			source/$tmp_lib_pidkmsg/255000000,"32: Unable to write file: Permission denied"
-			exit
-		endif
-		// Overwrite the file
-		getitem/"ftypes",ix2/"ft"
-		if/[ft == 0]
-			source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Is a directory"
-			exit
+		if/[ngroup == ""]
+			getitem/"fgroups",ix/"ngroup"
 		endif
 		if/[pseudo == ""] or [pseudo == "mntfsbin"]
-			replace/ix2,filename/"fnames"
-			read/fdata,"dummy"
-			replace/ix2,ild/"fdata"
-			replace/ix2,perms/"fperms"
-			replace/ix2,owner/"fowns"
-			replace/ix2,group/"fgroups"
+			replace/ix,filename/"fnames"
+			replace/ix,ild/"fdata"
+			replace/ix,nperms/"fperms"
+			replace/ix,owner/"fowns"
+			replace/ix,group/"fgroups"
 		else
 			// This is a pseudo file
-			getitem/"fnames",ix2/"tmp"
+			getitem/"fnames",ix/"tmp"
 			if/[tmp != filename]
-				source/$tmp_lib_pidkmsg/255000000,"Unable to write file: Permission denied"
+				// A pseudo file can't be renamed
+				set/"return_code","EIO"
 				exit
 			endif
 			set/"file",ild
-			replace/ix2,perms/"fperms"
-			replace/ix2,owner/"fowns"
-			replace/ix2,group/"fgroups"
-			getitem/"fdata",ix2/"tmp"
+			replace/ix,nperms/"fperms"
+			replace/ix,nowner/"fowns"
+			replace/ix,ngroup/"fgroups"
+			getitem/"fdata",ix/"tmp"
 			bintolist/tmp/"tmpd"
 			getitem/"tmpd",1/"tmp"
 			deleteitem/1/"tmpd"
@@ -186,9 +125,11 @@ linkdef/"emc32","emc50","global"
 			readvar/tmp/"tmp"
 			// Call write function
 			source/tmp/0/tmp2
+			exit
 		endif
 	endif
 	// Write to parent directory
+	source/$tmp_lib_fixpt/path2/"path2"
 	if/[pseudo == ""]
 		set/"fs",$rootfs/"tmppt",path2/"pseudo","$rootfs"
 	else
