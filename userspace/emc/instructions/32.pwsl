@@ -23,8 +23,12 @@ linkdef/"emc32_ls","em32_ls","global"
 	_ftest/path2,"r","d"/"ftest"
 	// Get parent directory name
 	getitem/"ftest",2/"pname"
-	if/[return_code != ""] and [pass == 1]
-		exit
+	if/[return_code != ""]
+		if/[pass == 1]
+			exit
+		else
+			set/"return_code",""
+		endif
 	endif
 	// List files in parent directory
 	source/$tmp_lib_fixpt/path2/"path2"
