@@ -30,6 +30,11 @@ linkdef/"emc39","emc57","global"
 	// Get parent directory path
 	getitem/"ftest",3/"path2"
 	if/[return_code == "ENOENT"]
+		// Check parent directory
+		_ftest/path2,"w","d"/"ftest"
+		if/[return_code != ""]
+			exit
+		endif
 		source/$tmp_lib_emc32_ls/1
 		// Process perms, owner and group
 		if/[nperms == ""]
