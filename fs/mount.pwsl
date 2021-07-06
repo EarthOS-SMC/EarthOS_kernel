@@ -117,6 +117,64 @@ linkdef/"_mount_fs","mnt_fs","global"
 		listtobin/"mount_md"/"$mount_md"
 	endwarp
 }
+linkdef/"_umount_fs","umnt_fs","global"
+{
+	warp
+		// _umount_fs/[path to filesystem or mount point]
+		getitem/"arg_1",1/"mntpt"
+		// Translate to absolute path
+		source/$tmp_lib_fixpt/mntpt/"mntpt"
+		// Test file/dir
+		source/$tmp_lib_ftest/mntpt,"r","a"/"test"
+		if/[return_code != ""]
+			exit
+		endif
+		// Load mount lists
+		bintolist/$mount_fs/"mount_fs"
+		bintolist/$mount_pnt/"mount_pnt"
+		bintolist/$mount_fsi/"mount_fsi"
+		bintolist/$mount_md/"mount_md"
+		// Get some info about this mounted fs
+		getindex/"mount_fs",mntpt/"ix2"
+		if/[ix == 0]
+			getindex/"mount_pnt",mntpt/"ix2"
+			if/[ix == 0]
+				// fs isn't mounted
+				set/"return_code","EINVAL"
+				exit
+			endif
+		endif
+		// TODO: Scan the filesystem recursively to find other mounted filesystems in it.
+		// Or... maybe fixpath can be used to detect parent fs
+		//
+		// Load pseudo fs lists
+		bintolist/$pseudo_fs/"pseudo_fs"
+		bintolist/$pseudo_fs_name/"pseudo_fs_name"
+		bintolist/$pseudo_fs_arg/"pseudo_fs_arg"
+		// Get pseudo fs arg of this filesystem
+		getindex/"pseudo_fs_arg",ix2/"ix"
+		if/[ix == 0]
+			// This is a pseudo fs or the root filesystem
+			// It can't be unmounted
+			set/"return_code","EBUSY"
+			exit
+		endif
+		// Remove mount
+		deleteitem/ix2/"mount_fs"
+		deleteitem/ix2/"mount_pnt"
+		deleteitem/ix2/"mount_fsi"
+		deleteitem/ix2/"mount_md"
+		// Save pseudo fs lists
+		listtobin/"pseudo_fs"/"$pseudo_fs"
+		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
+		listtobin/"pseudo_fs_arg"/"$pseudo_fs_arg"
+		// Save mount lists
+		listtobin/"mount_fs"/"$mount_fs"
+		listtobin/"mount_pnt"/"$mount_pnt"
+		listtobin/"mount_fsi"/"$mount_fsi"
+		listtobin/"mount_md"/"$mount_md"
+	endwarp
+}
 linkdef/"_mount_init","mnt_init","global"
 {
 	warp
