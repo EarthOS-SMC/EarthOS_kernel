@@ -19,34 +19,20 @@ linkdef/"emc24","emc36","global"
 {
 	// Read file.
 	// 24/[path]/[output list]
-	getitem/"argument1",1/"in1"
-	getitem/"argument2",1/"in2"
-	set/"quit",0
-	source/$tmp_lib_rfile/in1/"file"
-	// Check permissions
-	getitem/"fperms",ix/"perms"
-	getitem/"fowns",ix/"owner"
-	getitem/"fgroups",ix/"group"
-	source/$tmp_lib_chperms/perms,owner,group/"permout"
-	if/[permout == ""]
-		source/$tmp_lib_pidkmsg/255000000,"24: Unable to read file: No such file or directory"
-		set/"quit",1
+	getitem/"argument1",1/"lin1"
+	getitem/"argument2",1/"lin2"
+	// Use ftest to check the file
+	_ftest/lin1,"r","f"/"ftest"
+	if/[return_code != ""]
+		exit
 	endif
-	getletter/permout,1/"out"
-	if/[out != "r"] and [quit == 0]
-		source/$tmp_lib_pidkmsg/255000000,"24: Unable to read file: Permission denied"
-		set/"quit",1
-	endif
-	if/[quit == 1]
-		// Quit (with empty data)
-		set/"file",""
-	endif
-	// Now, it needs to save it in the list
-	getindex/"listn",in2/"ix"
+	source/$tmp_lib_rfile/lin1/"file"
+	// Save file data
+	getindex/"listn",lin2/"ix"
 	if/[ix != 0]
 		replace/ix,file/"listc"
 	else
-		append/in2/"listn"
+		append/lin2/"listn"
 		append/file/"listc"
 	endif
 }
