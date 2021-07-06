@@ -19,57 +19,28 @@ linkdef/"emc31","emc49","global"
 {
 	// List files in a directory.
 	// 31/[path]/[output list]
-	getitem/"argument1",1/"in1"
-	getitem/"argument2",1/"in2"
-	// Get directory name
-	source/$tmp_lib_fixpt/in1/"in1"
-	source/$tmp_lib_fixpt/in1/"in1"
-	getitem/"parts","last"/"name"
-	// Check permissions
-	if/[in1 == "/"]
-		set/"perms","rw-r--r--"/"owner","root"/"group","root"
-	else
-		set/"path",in1,"/.."
-		source/$tmp_lib_fixpt/path/"path"
-		if/[pseudo == ""]
-			set/"fs2",$rootfs/"tmppt2",path
-		else
-			readvar/pseudo/"fs2"
-			set/"tmppt2",pseudo_path
-		endif
-		source/$tmp_lib_ls/tmppt2,fs2/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-		getindex/"fnames",name/"ix"
-		getitem/"fperms",ix/"perms"
-		getitem/"fowns",ix/"owner"
-		getitem/"fgroups",ix/"group"
-	endif
-	source/$tmp_lib_chperms/perms,owner,group/"permout"
-	getletter/permout,1/"out"
-	if/[out != "r"]
-		getindex/"listn",in2/"ix2"
-		source/$tmp_lib_pidkmsg/255000000,"31: Unable to read directory: Permission denied"
-		// Quit (with empty data)
-		if/[ix2 == 0]
-			append/in2/"listn"
-			append/""/"listc"
-		else
-			replace/ix2,""/"listc"
-		endif
+	getitem/"argument1",1/"lin1"
+	getitem/"argument2",1/"lin2"
+	// Use ftest to check the directory
+	_ftest/lin1,"r","d"/"ftest"
+	if/[return_code != ""]
 		exit
 	endif
-	source/$tmp_lib_fixpt/in1/"in1"
+	// Get directory name
+	getitem/"ftest",2/"filename"
+	// List files
+	source/$tmp_lib_fixpt/lin1/"lin1"
 	if/[pseudo == ""]
-		set/"fs",$rootfs/"tmppt",in1
+		set/"fs",$rootfs/"tmppt",lin1
 	else
 		readvar/pseudo/"fs"
 		set/"tmppt",pseudo_path
 	endif
-	// List files
 	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	listtobin/"fnames"/"bin"
-	getindex/"listn",in2/"ix"
+	getindex/"listn",lin2/"ix"
 	if/[ix == 0]
-		append/in2/"listn"
+		append/lin2/"listn"
 		append/bin/"listc"
 	else
 		replace/ix,bin/"listc"
