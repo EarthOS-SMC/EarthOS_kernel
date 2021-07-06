@@ -19,81 +19,55 @@ linkdef/"emc39","emc57","global"
 {
 	// Create a directory.
 	// 39/[path]/[permissions],[owner],[group]
-	getitem/"argument1",1/"path3"
-	getitem/"argument2",1/"perms"
-	getitem/"argument2",2/"owner"
-	getitem/"argument2",3/"group"
+	getitem/"argument1",1/"path2"
+	getitem/"argument2",1/"nperms"
+	getitem/"argument2",2/"nowner"
+	getitem/"argument2",3/"ngroup"
+	// Use ftest to check the directory
+	_ftest/path2,"d","f"/"ftest"
 	// Get directory name
-	source/$tmp_lib_fixpt/path3/"path3"
-	if/[path3 == "/"]
-		// Root dir can't be created
-		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create '/' directory"
-		exit
-	endif
-	getitem/"parts","last"/"filename"
-	// Get absolute path of the parent directory and its name
-	set/"path3",path3,"/.."
-	source/$tmp_lib_fixpt/path3/"path3"
-	source/$tmp_lib_fixpt/path3/"path3"
-	getitem/"parts","last"/"pname"
-	if/[pseudo != ""]
-		// Not supported in pseudo filesystems
-		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create directory: Permission denied"
-		exit
-	endif
-	if/[path3 == "/"]
-		set/"perms","rw-r--r--"/"owner","root"/"group","root"
-	else
-		// Get absolute path of the second parent directory
-		set/"path2",path3,"/.."
-		source/$tmp_lib_fixpt/path2/"path2"
-		// Check permissions
-		source/$tmp_lib_ls/path2,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-		getindex/"fnames",pname/"ix"
-		getitem/"fperms",ix/"perms"
-		getitem/"fowns",ix/"owner"
-		getitem/"fgroups",ix/"group"
-	endif
-	source/$tmp_lib_chperms/perms,owner,group/"permout"
-	if/[permout == ""]
-		// Abort creation when parent directory doesn't exist or has some odd permissions
-		exit
-	endif
-	getletter/permout,1/"out1"
-	getletter/permout,2/"out2"
-	if/[out1 != "r"] or [out2 != "w"]
-		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create directory: Permission denied"
-		exit
-	endif
-	// List files
-	source/$tmp_lib_ls/path3,$rootfs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
-	// Check, if the directory exists
-	getindex/"fnames",filename/"ix"
-	if/[ix == 0]
+	getitem/"ftest",2/"filename"
+	// Get parent directory path
+	getitem/"ftest",3/"path2"
+	if/[return_code == "ENOENT"]
+		source/$tmp_lib_emc32_ls/1
 		// Process perms, owner and group
-		if/[perms == ""]
+		if/[nperms == ""]
 			// Default file permissions
-			set/"perms","rw-rw-r--"
+			set/"nperms","rw-rw-r--"
 		endif
-		if/[owner == ""]
+		if/[nowner == ""]
 			// Default owner
-			set/"owner",whoami
+			set/"nowner",whoami
 		endif
-		if/[group == ""]
+		if/[ngroup == ""]
 			// Default group
-			set/"group",whoami
+			set/"ngroup",whoami
 		endif
 		// Create the directory
 		append/0/"ftypes"
 		append/filename/"fnames"
 		append/""/"fdata"
-		append/perms/"fperms"
-		append/owner/"fowns"
-		append/group/"fgroups"
+		append/nperms/"fperms"
+		append/nowner/"fowns"
+		append/ngroup/"fgroups"
 	else
-		source/$tmp_lib_pidkmsg/255000000,"39: Unable to create directory: Already exists"
+		// Already exists
+		set/"return_code","EEXIST"
 		exit
 	endif
 	// Write to parent directory
-	source/$tmp_lib_wrdir/$rootfs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/path3,"$rootfs"
+	source/$tmp_lib_fixpt/path2/"path2"
+	if/[pseudo == ""]
+		set/"fs",$rootfs/"tmppt",path2/"pseudo","$rootfs"
+	else
+		readvar/pseudo/"fs"
+		set/"tmppt",pseudo_path
+	endif
+	source/$tmp_lib_wrdir/fs,"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"/tmppt,pseudo
+	if/[pseudo == "mntfsbin"]
+		bintolist/$mount_fsi/"mount_fsi"
+		replace/mntid,mntfsbin/"mount_fsi"
+		listtobin/"mount_fsi"/"$mount_fsi"
+	endif
 }
