@@ -38,7 +38,8 @@ define/"kinit"
 		set/"return_code",""/"whoami","root"/"$rootfs",""
 		_mount_fs/KERNEL_INPUT_root,"/","rw"
 		if/[return_code != ""]
-			set/"it",KERNEL_INPUT_root,": ",return_code
+			_get_error/return_code,0/"ret"
+			set/"it",KERNEL_INPUT_root,": ",ret
 			PANIC/it
 		endif
 		// Set up pseudo filesystems
@@ -48,7 +49,8 @@ define/"kinit"
 		kmsg/"","000255000","Executing /sbin/init"
 		_ftest/"/sbin/init","rx","f"/"test"
 		if/[return_code != ""]
-			PANIC/"/sbin/init: ",return_code,\n
+			_get_error/return_code,0/"ret"
+			PANIC/"/sbin/init: ",ret,\n
 		else
 			readfile/"/sbin/init"/"fd"
 		endif
