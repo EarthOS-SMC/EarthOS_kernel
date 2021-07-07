@@ -29,7 +29,8 @@ linkdef/"_pseudo_fs_proc_setup","ps_fs_proc_st","global"
 		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
 		_mount_fs/"procfs","/proc","rw","pseudo"
 		if/[return_code != ""]
-			set/"it","Failed to mount procfs: ",return_code
+			_get_error/return_code,0/"ret"
+			set/"it","Failed to mount procfs: ",ret
 			PANIC/it
 		endif
 		set/"$_pseudo_fs_proc","5;FSSC2"
