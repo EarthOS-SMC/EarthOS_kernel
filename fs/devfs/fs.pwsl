@@ -32,7 +32,8 @@ linkdef/"_pseudo_fs_dev_setup","ps_fs_dev_st","global"
 		if/[in != 1]
 			_mount_fs/"devfs","/dev","rw","pseudo"
 			if/[return_code != ""]
-				set/"it","Failed to mount devfs: ",return_code
+				_get_error/return_code,0/"ret"
+				set/"it","Failed to mount devfs: ",ret
 				PANIC/it
 			endif
 		endif
