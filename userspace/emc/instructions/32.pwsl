@@ -15,12 +15,17 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
-linkdef/"emc32_ls","em32_ls","global"
+linkdef/"emc32_ls","emc32_ls","global"
 {
-	// emc32_ls/[pass required (1/0 - true/false)]
+	// emc32_ls/[pass required (1/0 - true/false)],[write access required (1/0 - true/false)]
 	getitem/"arg_1",1/"pass"
+	getitem/"arg_1",2/"wr"
 	// Check parent directory
-	_ftest/path2,"r","d"/"ftest"
+	if/[wr == 1]
+		_ftest/path2,"rw","d"/"ftest"
+	else
+		_ftest/path2,"r","d"/"ftest"
+	endif
 	// Get parent directory name
 	getitem/"ftest",2/"pname"
 	if/[return_code != ""]
@@ -65,7 +70,11 @@ linkdef/"emc32","emc50","global"
 	getitem/"ftest",3/"path2"
 	if/[return_code != ""]
 		if/[return_code == "ENOENT"]
-			source/$tmp_lib_emc32_ls/1
+			set/"return_code",""
+			source/$tmp_lib_emc32_ls/1,1
+			if/[return_code != ""]
+				exit
+			endif
 			// Process perms, owner and group
 			if/[nperms == ""]
 				// Default file permissions
@@ -132,6 +141,7 @@ linkdef/"emc32","emc50","global"
 			exit
 		endif
 	endif
+	set/"return_code",""
 	// Write to parent directory
 	source/$tmp_lib_fixpt/path2/"path2"
 	if/[pseudo == ""]
