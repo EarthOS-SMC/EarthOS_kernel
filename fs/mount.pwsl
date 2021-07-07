@@ -159,6 +159,10 @@ linkdef/"_umount_fs","umnt_fs","global"
 			set/"return_code","EBUSY"
 			exit
 		endif
+		// Remove pseudo fs
+		deleteitem/ix/"pseudo_fs"
+		deleteitem/ix/"pseudo_fs_name"
+		deleteitem/ix/"pseudo_fs_arg"
 		// Remove mount
 		deleteitem/ix2/"mount_fs"
 		deleteitem/ix2/"mount_pnt"
