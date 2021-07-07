@@ -32,7 +32,8 @@ linkdef/"_pseudo_fs_sys_setup","ps_fs_sys_st","global"
 		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
 		_mount_fs/"sysfs","/sys","rw","pseudo"
 		if/[return_code != ""]
-			set/"it","Failed to mount sysfs: ",return_code
+			_get_error/return_code,0/"ret"
+			set/"it","Failed to mount sysfs: ",ret
 			PANIC/it
 		endif
 		set/"$_pseudo_fs_sys","5;FSSC2"
