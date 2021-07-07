@@ -31,12 +31,10 @@ linkdef/"emc39","emc57","global"
 	getitem/"ftest",3/"path2"
 	if/[return_code == "ENOENT"]
 		set/"return_code",""
-		// Check parent directory
-		_ftest/path2,"w","d"/"ftest"
+		source/$tmp_lib_emc32_ls/1,1
 		if/[return_code != ""]
 			exit
 		endif
-		source/$tmp_lib_emc32_ls/1
 		// Process perms, owner and group
 		if/[nperms == ""]
 			// Default file permissions
