@@ -164,10 +164,18 @@ linkdef/"_umount_fs","umnt_fs","global"
 		deleteitem/ix/"pseudo_fs_name"
 		deleteitem/ix/"pseudo_fs_arg"
 		// Remove mount
-		deleteitem/ix2/"mount_fs"
-		deleteitem/ix2/"mount_pnt"
-		deleteitem/ix2/"mount_fsi"
-		deleteitem/ix2/"mount_md"
+		getlistlength/"mount_fs"/"len"
+		if/[ix2 == len]
+			deleteitem/ix2/"mount_fs"
+			deleteitem/ix2/"mount_pnt"
+			deleteitem/ix2/"mount_fsi"
+			deleteitem/ix2/"mount_md"
+		else
+			replace/ix2,""/"mount_fs"
+			replace/ix2,""/"mount_pnt"
+			replace/ix2,""/"mount_fsi"
+			replace/ix2,""/"mount_md"
+		endif
 		// Save pseudo fs lists
 		listtobin/"pseudo_fs"/"$pseudo_fs"
 		listtobin/"pseudo_fs_name"/"$pseudo_fs_name"
