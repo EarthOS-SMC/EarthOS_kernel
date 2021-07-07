@@ -23,6 +23,11 @@ linkdef/"_mount_fs","mnt_fs","global"
 		getitem/"arg_1",2/"mntpnt"
 		getitem/"arg_1",3/"mntmd"
 		getitem/"arg_1",4/"mnttp"
+		// Check permissions
+		if/[whoami != "root"]
+			set/"return_code","EPERM"
+			exit
+		endif
 		// Translate to absolute paths
 		if/[mnttp != "pseudo"]
 			source/$tmp_lib_fixpt/mntfs/"mntfs"
@@ -122,6 +127,11 @@ linkdef/"_umount_fs","umnt_fs","global"
 	warp
 		// _umount_fs/[path to filesystem or mount point]
 		getitem/"arg_1",1/"mntpt"
+		// Check permissions
+		if/[whoami != "root"]
+			set/"return_code","EPERM"
+			exit
+		endif
 		// Translate to absolute path
 		source/$tmp_lib_fixpt/mntpt/"mntpt"
 		// Test file/dir
