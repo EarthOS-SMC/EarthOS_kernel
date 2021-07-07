@@ -1,0 +1,50 @@
+// EarthOS kernel - errors
+//
+//    Copyright (C) 2021  adazem009
+//
+// Functions for use with system error codes.
+//
+//    This program is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+linkdef/"init_err","iner","global"
+{
+	// init_err
+	// (no arguments)
+	setlist/"err_c"/"EPERM","ENOENT","EIO","ENOEXEC","EACCES","EBUSY","EEXIST","ENOTDIR","EISDIR","EINVAL","ENOSPC","EROFS","ENAMETOOLONG","ENOSYS","ENOTEMPTY","ELOOP"
+	setlist/"err_d"/"Operation not permitted","No such file or directory","I/O error","Exec format error","Permission denied","Device or resource busy","File exists","Not a directory","Is a directory","Invalid argument","No space left on device","Read-only file system","File name too long","Function not implemented","Directory not empty","Too many symbolic links encountered"
+	listtobin/"err_c"/"$err_c"
+	listtobin/"err_d"/"$err_d"
+}
+linkdef/"_get_error","gerr","global"
+{
+	warp
+		// _get_error/[input],[0/1 - input is: code/description]/[output variable]
+		getitem/"arg_1",1/"in1"
+		getitem/"arg_1",2/"in2"
+		getitem/"arg_2",1/"outv"
+		bintolist/$err_c/"err_c"
+		bintolist/$err_d/"err_d"
+		if/[in2 == 0]
+			getindex/"err_c",in1/"ix"
+			getitem/"err_d",ix/outv
+		else
+			getindex/"err_d",in1/"ix"
+			getitem/"err_c",ix/outv
+		endif
+		if/[ix == 0]
+			set/"return_code","EINVAL"
+		endif
+	endwarp
+	
+}

@@ -21,6 +21,8 @@ include/"init/cmdline.pwsl"
 define/"kinit"
 {
 	warp
+		// Init system error codes
+		init_err
 		// Set up userspace
 		_userspace_setup
 		// Set up devfs (required to mount root fs)
