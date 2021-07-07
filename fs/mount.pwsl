@@ -136,9 +136,9 @@ linkdef/"_umount_fs","umnt_fs","global"
 		bintolist/$mount_md/"mount_md"
 		// Get some info about this mounted fs
 		getindex/"mount_fs",mntpt/"ix2"
-		if/[ix == 0]
+		if/[ix2 == 0]
 			getindex/"mount_pnt",mntpt/"ix2"
-			if/[ix == 0]
+			if/[ix2 == 0]
 				// fs isn't mounted
 				set/"return_code","EINVAL"
 				exit
