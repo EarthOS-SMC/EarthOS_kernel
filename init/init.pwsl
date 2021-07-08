@@ -46,13 +46,14 @@ define/"kinit"
 		_pseudo_tool_init
 		_pseudo_tool_setup
 		// Start init
-		kmsg/"","000255000","Executing /sbin/init"
-		_ftest/"/sbin/init","rx","f"/"test"
+		set/"msg","Executing ",$initpath
+		kmsg/"","000255000",msg
+		_ftest/$initpath,"rx","f"/"test"
 		if/[return_code != ""]
 			_get_error/return_code,0/"ret"
-			PANIC/"/sbin/init: ",ret,\n
+			PANIC/$initpath,": ",ret,\n
 		else
-			readfile/"/sbin/init"/"fd"
+			readfile/$initpath/"fd"
 		endif
 	endwarp
 	_start/fd,"wait","root"

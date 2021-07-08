@@ -24,6 +24,7 @@ define/"kcmdline"
 	warp
 		// Default values
 		set/"$quietlog",0
+		set/"$initpath","/sbin/init"
 		// Process command line
 		set/"cm","Kernel command line: "
 		setlist/"KERNEL_INPUTS_N","KERNEL_INPUTS_V"
@@ -52,6 +53,9 @@ define/"kcmdline"
 			// "quiet"
 			if/[setname == "quiet"]
 				set/"$quietlog",1
+			endif
+			if/[setname == "init"]
+				set/"$initpath",inputvalue
 			endif
 			append/setname/"KERNEL_INPUTS_N"
 			append/inputvalue/"KERNEL_INPUTS_V"
