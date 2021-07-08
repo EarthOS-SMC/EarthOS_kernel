@@ -25,41 +25,52 @@ linkdef/"kmsg","kmsg","global"
 		calc/"kup=%time-$kstart"/2
 		set/"ts","[ ",kup," ] "/"kmi",0
 		//print/"ˇ000255000ˇ",ts
-		print/\c"000255000",ts
+		// TODO: Save kernel logs in a list.
+		if/[$quietlog != 1]
+			print/\c"000255000",ts
+		endif
 		getlength/ts/"tsl"
 		getitem/"arg_1",2/"kmcl"
 		repeat/kmc
 			calc/"kmi=kmi+1"
 			getitem/"arg_1",kmi/"km"
 			if/[km == "\n"] and [kmi > 2]
-				print/\n
-				calc/"tsl2=tsl-1"
-				// ^^^ Fix an incorrect text alignment
-				repeat/tsl2
-					print/" "
-				endloop
+				if/[$quietlog != 1]
+					print/\n
+					calc/"tsl2=tsl-1"
+					// ^^^ Fix an incorrect text alignment
+					repeat/tsl2
+						print/" "
+					endloop
+				endif
 			else
 				if/[km != ""]
-					if/[kmi == 1]
-						print/\c"2461160",km,": "
-					else
-						// I know this is duplicate, but the colored
-						// text is a bit broken in SMC Computer, so
-						// I used this workaround
-						if/[kmi > 2]
-							//print/km
-							print/\ckmcl,km
+					if/[$quietlog != 1]
+						if/[kmi == 1]
+							print/\c"2461160",km,": "
+						else
+							// I know this is duplicate, but the colored
+							// text is a bit broken in SMC Computer, so
+							// I used this workaround
+							if/[kmi > 2]
+								//print/km
+								print/\ckmcl,km
+							endif
 						endif
 					endif
 				else
 					if/[kmi > 2]
-						//print/km
-						print/\ckmcl,km
+						if/[$quietlog != 1]
+							//print/km
+							print/\ckmcl,km
+						endif
 					endif
 				endif
 			endif
 		endloop
-		print/\n
+		if/[$quietlog != 1]
+			print/\n
+		endif
 	endwarp
 }
 linkdef/"pidkmsg","pidkmsg","global"
