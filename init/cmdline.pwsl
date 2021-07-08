@@ -23,7 +23,7 @@ define/"kcmdline"
 	endif
 	warp
 		set/"cm","Kernel command line: "
-		setlist/"KERNEL_INPUTS"
+		setlist/"KERNEL_INPUTS_N","KERNEL_INPUTS_V"
 		getlistlength/"kargs"/"inputs"
 		set/"i",0
 		while/[i < inputs]
@@ -46,10 +46,14 @@ define/"kcmdline"
 			append/inputpart/"inputparts"
 			getitem/"inputparts",1/"setname"
 			getitem/"inputparts",2/"inputvalue"
+			append/setname/"KERNEL_INPUTS_N"
+			append/inputvalue/"KERNEL_INPUTS_V"
 			set/"cm",cm,setname,"=",inputvalue," "
 			set/"setname","KERNEL_INPUT_",setname
 			set/setname,inputvalue
 		endloop
+		listtobin/"KERNEL_INPUTS_N"/"$KERNEL_INPUTS_N"
+		listtobin/"KERNEL_INPUTS_V"/"$KERNEL_INPUTS_V"
 		kmsg/"",255255255,cm
 	endwarp
 }
