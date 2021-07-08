@@ -22,6 +22,9 @@ define/"kcmdline"
 		PANIC/"Only one SMC argument can be passed to the kernel."
 	endif
 	warp
+		// Default values
+		set/"$quietlog",0
+		// Process command line
 		set/"cm","Kernel command line: "
 		setlist/"KERNEL_INPUTS_N","KERNEL_INPUTS_V"
 		getlistlength/"kargs"/"inputs"
@@ -46,6 +49,10 @@ define/"kcmdline"
 			append/inputpart/"inputparts"
 			getitem/"inputparts",1/"setname"
 			getitem/"inputparts",2/"inputvalue"
+			// "quiet"
+			if/[setname == "quiet"]
+				set/"$quietlog",1
+			endif
 			append/setname/"KERNEL_INPUTS_N"
 			append/inputvalue/"KERNEL_INPUTS_V"
 			set/"cm",cm,setname,"=",inputvalue," "
