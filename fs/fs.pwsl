@@ -59,7 +59,6 @@ linkdef/"_ftest","ftest","global"
 		endif
 		append/"/"/fout
 		set/"perms","rw-r--r--"/"owner","root"/"group","root"
-		
 	else
 		set/"fup",fpath,"/.."
 		source/$tmp_lib_fixpt/fup/"fup"

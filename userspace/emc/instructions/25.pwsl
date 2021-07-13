@@ -68,5 +68,4 @@ linkdef/"emc25","emc37","global"
 		set/"msg","25: Failed to add user: ",err
 		source/$tmp_lib_pidkmsg/255000000,msg
 	endif
-	
 }

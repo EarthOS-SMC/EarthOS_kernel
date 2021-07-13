@@ -20,7 +20,7 @@
 //
 include/"kernel/msg.pwsl"
 include/"kernel/panic.pwsl"
-include/"kernel/utils.pwsl
+include/"kernel/utils.pwsl"
 include/"kernel/err.pwsl"
 include/"disk/fpt/fpt.pwsl"
 include/"fs/fs.pwsl"

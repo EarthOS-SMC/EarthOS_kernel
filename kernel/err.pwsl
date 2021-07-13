@@ -46,5 +46,4 @@ linkdef/"_get_error","gerr","global"
 			set/"return_code","EINVAL"
 		endif
 	endwarp
-	
 }
