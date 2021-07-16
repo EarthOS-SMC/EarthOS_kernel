@@ -85,11 +85,18 @@ linkdef/"_emc","emc","global"
 				replace/ix,arg/"listc"
 			endif
 		endloop
+		// Check exec format
+		getitem/"script",1/"it"
+		if/[it != "#EOS"]
+			_get_error/"ENOEXEC",0/"err"
+			source/$tmp_lib_pidkmsg/255255000,err
+			exit
+		endif
 		// Execute
 		getlistlength/"script"/"slen"
 		bintolist/$gl_vn/"gl_vn"
 		bintolist/$gl_vv/"gl_vv"
-		set/"si",0
+		set/"si",1
 		while/[si < slen]
 			calc/"si=si+1"
 			source/$tmp_lib_envupdate
