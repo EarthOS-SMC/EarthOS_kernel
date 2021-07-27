@@ -93,21 +93,41 @@ linkdef/"_emc","emc","global"
 			exit
 		endif
 		// Execute
+		set/"return_code",""
 		getlistlength/"script"/"slen"
 		bintolist/$gl_vn/"gl_vn"
 		bintolist/$gl_vv/"gl_vv"
 		set/"si",1
-		while/[si < slen]
+		while/[si < slen] and [return_code != "CRASH"]
 			calc/"si=si+1"
 			source/$tmp_lib_envupdate
-			set/"return_code",""
+			set/"insaddr",si/"return_code",""
 			smc_getarg/"script",si,"vn","vv","gl_vn","gl_vv"/"si2","command","argument"
 			set/"res1",si2
 			source/$tmp_lib_rcmd
 			set/"si",res1
 		endloop
-		if/[si < slen]
-			source/$tmp_lib_pidkmsg/255255000,"Crashed for unknown reason!"
+		if/[return_code == "CRASH"]
+			set/"msg",""/"si2",-2
+			repeat/5
+				calc/"tmp=insaddr+si2"
+				if/[tmp > 0] and [tmp <= slen]
+					getitem/"script",tmp/"it"
+					if/[insaddr == tmp]
+						set/"msg",msg,">>",it,"<< "
+					else
+						set/"msg",msg,it," "
+					endif
+				endif
+				calc/"si2=si2+1"
+			endloop
+			getitem/"script",insaddr/"it"
+			if/[it == "1A"] or [it == "1B"]
+				set/"err","thread crash"
+			else
+				set/"err","segfault"
+			endif
+			kmsg/err,255000000,"pid ",pid,"\n","Executable code length: ",slen,"\n","Current address: ",insaddr,"\n",msg
 		endif
 		//source/$tmp_lib_pidkmsg/255255255,"stopped"
 	endwarp
