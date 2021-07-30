@@ -33,7 +33,7 @@ linkdef/"emc1B","emc27","global"
 	endloop
 	if/[temp2 == "bg"]
 		// bg source not supported yet, even in SMC Computer
-		source/$tmp_lib_pidkmsg/255000000,"1B: bg not supported"
+		set/"return_code","EINVAL"
 	else
 		listtobin/"args"/"args_pass"
 		append/res1/"i_tree"
