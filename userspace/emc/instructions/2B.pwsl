@@ -29,11 +29,10 @@ linkdef/"emc2B","emc43","global"
 			if/[in == 2]
 				source/$tmp_lib_reboot/1
 			else
-				set/"msg","2B: Unknown power state: ",in
-				source/$tmp_lib_pidkmsg/255000000,msg
+				set/"return_code","EINVAL"
 			endif
 		endif
 	else
-		source/$tmp_lib_pidkmsg/255000000,"2B: Switch power state failed: Permission denied"
+		set/"return_code","EPERM"
 	endif
 }
