@@ -33,7 +33,7 @@ linkdef/"emc1B","emc27","global"
 	endloop
 	if/[temp2 == "bg"]
 		// bg source not supported yet, even in SMC Computer
-		set/"return_code","EINVAL"
+		set/"return_code","ENOSYS"
 	else
 		listtobin/"args"/"args_pass"
 		append/res1/"i_tree"
