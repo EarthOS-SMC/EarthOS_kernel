@@ -21,4 +21,5 @@ linkdef/"emc3E","emc62","global"
 	// 3E/[input list name],[index var name],[var names list],[var values list],[global var names list],[global var values list]/[index2 var name],[command list name],[argument lists prefix],[reserved var name]
 	// Virtualization is going to come later
 	source/$tmp_lib_pidkmsg/255255000,"Virtualization isn't supported yet!"
+	set/"return_code","ENOSYS"
 }
