@@ -19,17 +19,17 @@ linkdef/"emc28","emc40","global"
 {
 	// Delete user.
 	// 28/[username]
-	set/"err",""
 	if/[whoami == "root"]
 		getitem/"argument1",1/"in"
 		bintolist/$USERS/"USERS"
 		getindex/"USERS",in/"ix"
 		if/[ix == 0]
-			set/"err","User '",in,"' not found"
+			set/"return_code","EINVAL"
 		else
 			// Delete user
 			if/[in == "root"]
-				set/"err","User 'root' can't be deleted"
+				// root can't be deleted
+				set/"return_code","EPERM"
 			else
 				deleteitem/ix/"USERS"
 				listtobin/"USERS"/"$USERS"
@@ -53,10 +53,6 @@ linkdef/"emc28","emc40","global"
 			endif
 		endif
 	else
-		set/"err","Permission denied"
-	endif
-	if/[err != ""]
-		set/"msg","28: Failed to delete user: ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
+		set/"return_code","EPERM"
 	endif
 }
