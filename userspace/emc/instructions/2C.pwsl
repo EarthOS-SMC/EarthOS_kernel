@@ -19,7 +19,6 @@ linkdef/"emc2C","emc44","global"
 {
 	// Add user to group.
 	// 2C/[username]/[group name]
-	set/"err",""
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
 	if/[whoami == "root"] or [whoami == in2]
@@ -27,13 +26,15 @@ linkdef/"emc2C","emc44","global"
 		bintolist/$USERS/"USERS"
 		getindex/"USERS",in1/"ix"
 		if/[ix == 0]
-			set/"err","This user doesn't exist"
+			// This user doesn't exist
+			set/"return_code","EINVAL"
 		else
 			// Check if the group exists
 			bintolist/$GROUPS/"GROUPS"
 			getindex/"GROUPS",in2/"ix"
 			if/[ix == 0]
-				set/"err","This group doesn't exist"
+				// This group doesn't exist
+				set/"return_code","EINVAL"
 			else
 				// Check, if the user isn't already in the group
 				bintolist/$GROUP_USERS/"GROUP_USERS"
@@ -49,15 +50,12 @@ linkdef/"emc2C","emc44","global"
 					replace/ix,it/"GROUP_USERS"
 					listtobin/"GROUP_USERS"/"$GROUP_USERS"
 				else
-					set/"err","User is already in the group"
+					// User is already in the group
+					set/"return_code","EINVAL"
 				endif
 			endif
 		endif
 	else
-		set/"err","Permission denied"
-	endif
-	if/[err != ""]
-		set/"msg","2C: Failed to add user '",in1,"' to group '",in2,"': ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
+		set/"return_code","EPERM"
 	endif
 }
