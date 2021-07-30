@@ -31,6 +31,6 @@ linkdef/"emc2E","emc46","global"
 			replace/ix,$USERS/"listc"
 		endif
 	else
-		source/$tmp_lib_pidkmsg/255000000,"2E: Unable to read user list: Permission denied"
+		set/"return_code","EACCES"
 	endif
 }
