@@ -37,4 +37,5 @@ linkdef/"emc37","emc55","global"
 	//smc_getarg/"list",in2,"tmpvn","tmpvv","tmpglvn","tmpglvv"/"tmpsi2","cmd","tmparg"
 	//
 	source/$tmp_lib_pidkmsg/255255000,"Virtualization isn't supported yet!"
+	set/"return_code","ENOSYS"
 }
