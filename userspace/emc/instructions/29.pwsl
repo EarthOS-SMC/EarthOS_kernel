@@ -28,13 +28,10 @@ linkdef/"emc29","emc41","global"
 			append/in/"GROUPS"
 			listtobin/"GROUPS"/"$GROUPS"
 		else
-			set/"err","Group '",in,"' already exists"
+			// Group already exists
+			set/"return_code","EINVAL"
 		endif
 	else
-		set/"err","Permission denied"
-	endif
-	if/[err != ""]
-		set/"msg","29: Failed to add group: ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
+		set/"return_code","EPERM"
 	endif
 }
