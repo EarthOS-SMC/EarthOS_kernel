@@ -19,7 +19,6 @@ linkdef/"emc25","emc37","global"
 {
 	// Add user.
 	// 25/[username]
-	set/"err",""
 	if/[whoami == "root"]
 		getitem/"argument1",1/"in"
 		// Add user
@@ -28,7 +27,8 @@ linkdef/"emc25","emc37","global"
 		if/[ix == 0]
 			append/in/"USERS"
 		else
-			set/"err","User '",in,"' already exists"
+			// User already exists
+			set/"return_code","EINVAL"
 		endif
 		if/[err == ""]
 			// Create a group for the user
@@ -36,9 +36,6 @@ linkdef/"emc25","emc37","global"
 			getindex/"GROUPS",in/"ix"
 			if/[ix == 0]
 				append/in/"GROUPS"
-			else
-				set/"msg","25: Warning: Group '",in,"' already exists"
-				source/$tmp_lib_pidkmsg/255123000,msg
 			endif
 			// Add the user to its group
 			bintolist/$GROUP_USERS/"GROUP_USERS"
@@ -49,23 +46,18 @@ linkdef/"emc25","emc37","global"
 			if/[ix == 0]
 				append/in/"group"
 			else
-				set/"msg","25: Warning: User '",in,"' is already in group '",in,"'"
-				source/$tmp_lib_pidkmsg/255123000,msg
+				// User is already in the group
+				set/"return_code","EINVAL"
 			endif
 			listtobin/"group"/"it"
 			getindex/"GROUPS",in/"ix"
 			replace/ix,it/"GROUP_USERS"
 		endif
 	else
-		set/"err","Permission denied"
+		set/"return_code","EPERM"
 	endif
-	if/[err == ""]
-		// Sync changes
-		listtobin/"USERS"/"$USERS"
-		listtobin/"GROUPS"/"$GROUPS"
-		listtobin/"GROUP_USERS"/"$GROUP_USERS"
-	else
-		set/"msg","25: Failed to add user: ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
-	endif
+	// Sync changes
+	listtobin/"USERS"/"$USERS"
+	listtobin/"GROUPS"/"$GROUPS"
+	listtobin/"GROUP_USERS"/"$GROUP_USERS"
 }
