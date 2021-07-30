@@ -29,6 +29,6 @@ linkdef/"emc2F","emc47","global"
 			replace/ix,$GROUPS/"listc"
 		endif
 	else
-		source/$tmp_lib_pidkmsg/255000000,"2E: Unable to read group list: Permission denied"
+		set/"return_code","EACCES"
 	endif
 }
