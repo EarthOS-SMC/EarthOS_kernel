@@ -19,26 +19,23 @@ linkdef/"emc2A","emc42","global"
 {
 	// Delete group.
 	// 2A/[group name]
-	set/"err",""
 	if/[whoami == "root"]
 		getitem/"argument1",1/"in"
 		bintolist/$GROUPS/"GROUPS"
 		getindex/"GROUPS",in/"ix"
 		if/[ix == 0]
-			set/"err","Group '",in,"' not found"
+			// Group not found
+			set/"return_code","EINVAL"
 		else
 			if/[in == "root"]
-				set/"err","Group 'root' can't be deleted"
+				// Group root can't be deleted
+				set/"return_code","EPERM"
 			else
 				deleteitem/ix/"GROUPS"
 				listtobin/"GROUPS"/"$GROUPS"
 			endif
 		endif
 	else
-		set/"err","Permission denied"
-	endif
-	if/[err != ""]
-		set/"msg","2A: Failed to delete group: ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
+		set/"return_code","EPERM"
 	endif
 }
