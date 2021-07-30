@@ -19,7 +19,6 @@ linkdef/"emc2D","emc45","global"
 {
 	// Delete user from group.
 	// 2D/[username]/[group name]
-	set/"err",""
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
 	if/[whoami == "root"] or [whoami == in2]
@@ -34,9 +33,7 @@ linkdef/"emc2D","emc45","global"
 			getitem/"GROUP_USERS",ix/"it"
 			bintolist/it/"group"
 			getindex/"group",in1/"ix"
-			if/[ix == 0]
-				set/"err","User is not in the group"
-			else
+			if/[ix != 0]
 				// Delete the user from the group
 				deleteitem/ix/"group"
 				// Sync the changes
@@ -47,10 +44,6 @@ linkdef/"emc2D","emc45","global"
 			endif
 		endif
 	else
-		set/"err","Permission denied"
-	endif
-	if/[err != ""]
-		set/"msg","2D: Failed to delete user '",in1,"' from group '",in2,"': ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
+		set/"return_code","EPERM"
 	endif
 }
