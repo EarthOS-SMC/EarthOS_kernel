@@ -162,7 +162,7 @@ linkdef/"_pseudo_file_dev_generic_write","ps_fi_dev_generic_write","global"
 				_writepart/file/psin1,psin2
 			else
 				cpdisk/psin1,1/"bin"
-				source/$tmp_lib_lpt/bin/"pt","pts","ptd"
+				_listpart/bin/"pt","pts","ptd"
 				getitem/"ptd",psin2/"bin2"
 				getlength/bin2/"len"
 				set/"bin",""/"psi",0

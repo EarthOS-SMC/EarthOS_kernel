@@ -20,7 +20,7 @@ linkdef/"_poweroff","poweroff","global"
 	endwarp
 		// _poweroff/[wait time in secs]
 		getitem/"arg_1",1/"wait"
-		source/$tmp_lib_kmsg/"","003119252","System power off"
+		kmsg/"","003119252","System power off"
 		wait/in
 		shutdown
 	warp

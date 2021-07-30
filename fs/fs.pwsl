@@ -44,8 +44,8 @@ linkdef/"_ftest","ftest","global"
 	getitem/"arg_1",3/"ftype"
 	getitem/"arg_2",1/"fout"
 	// Get file/dir name from the path
-	source/$tmp_lib_fixpt/fpath/"fpath"
-	source/$tmp_lib_fixpt/fpath/"fpath"
+	_fixpath/fpath/"fpath"
+	_fixpath/fpath/"fpath"
 	getitem/"parts","last"/"name"
 	setlist/fout/"",name
 	// Get parent dir
@@ -61,7 +61,7 @@ linkdef/"_ftest","ftest","global"
 		set/"perms","rw-r--r--"/"owner","root"/"group","root"
 	else
 		set/"fup",fpath,"/.."
-		source/$tmp_lib_fixpt/fup/"fup"
+		_fixpath/fup/"fup"
 		append/fup/fout
 		if/[pseudo == ""]
 			set/"fs2",$rootfs/"tmppt2",fup
@@ -99,7 +99,7 @@ linkdef/"_ftest","ftest","global"
 	append/perms/fout
 	append/owner/fout
 	append/group/fout
-	source/$tmp_lib_chperms/perms,owner,group/"permout"
+	_checkperms/perms,owner,group/"permout"
 	getletter/permout,1/"out"
 	if/[out == "r"]
 		append/1/fout
@@ -112,7 +112,7 @@ linkdef/"_ftest","ftest","global"
 			exit
 		endif
 	endif
-	source/$tmp_lib_fixpt/fpath/"fpath"
+	_fixpath/fpath/"fpath"
 	getletter/permout,2/"out"
 	bintolist/$mount_fs/"mount_fs2"
 	bintolist/$mount_pnt/"mount_pnt2"

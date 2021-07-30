@@ -30,9 +30,9 @@ linkdef/"_mount_fs","mnt_fs","global"
 		endif
 		// Translate to absolute paths
 		if/[mnttp != "pseudo"]
-			source/$tmp_lib_fixpt/mntfs/"mntfs"
+			_fixpath/mntfs/"mntfs"
 		endif
-		source/$tmp_lib_fixpt/mntpnt/"mntpnt"
+		_fixpath/mntpnt/"mntpnt"
 		// Filesystem permission checks
 		set/"return_code",""
 		if/[mnttp != "pseudo"]
@@ -133,7 +133,7 @@ linkdef/"_umount_fs","umnt_fs","global"
 			exit
 		endif
 		// Translate to absolute path
-		source/$tmp_lib_fixpt/mntpt/"mntpt"
+		_fixpath/mntpt/"mntpt"
 		// Test file/dir
 		source/$tmp_lib_ftest/mntpt,"r","a"/"test"
 		if/[return_code != ""]

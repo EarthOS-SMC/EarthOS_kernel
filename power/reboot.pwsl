@@ -20,7 +20,7 @@ linkdef/"_reboot","reboot","global"
 	endwarp
 		// _reboot/[wait time in secs]
 		getitem/"arg_1",1/"wait"
-		source/$tmp_lib_kmsg/"","003119252","System restart"
+		kmsg/"","003119252","System restart"
 		wait/in
 		reboot
 	warp

@@ -93,20 +93,20 @@ linkdef/"readfile","rfile","global"
 	// readfile/[path]/[output variable (string)]
 	getitem/"arg_1",1/"in"
 	getitem/"arg_2",1/"inout"
-	source/$tmp_lib_fixpt/in/"path"
+	_fixpath/in/"path"
 	// The last item is our file name
 	getlistlength/"parts"/"len"
 	getitem/"parts",len/"gname"
 	set/"path",in,"/.."
 	// ^ This will make _fixpath ignore the last part of the path
-	source/$tmp_lib_fixpt/path/"path"
+	_fixpath/path/"path"
 	if/[pseudo == ""]
 		set/"fs",$rootfs/"tmppt",path
 	else
 		readvar/pseudo/"fs"
 		set/"tmppt",pseudo_path
 	endif
-	source/$tmp_lib_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
+	_ls/tmppt,fs/"ftypes","fnames","fdata","fperms","fowns","fgroups","fattr"
 	getindex/"fnames",gname/"ix"
 	getitem/"fdata",ix/"file"
 	if/[pseudo != ""] and [pseudo != "mntfsbin"]
