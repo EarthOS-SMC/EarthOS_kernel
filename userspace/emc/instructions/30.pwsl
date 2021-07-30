@@ -19,14 +19,14 @@ linkdef/"emc30","emc48","global"
 {
 	// Get list of users in a group.
 	// 30/[group name]/[output list]
-	set/"err",""
 	getitem/"argument1",1/"in1"
 	getitem/"argument2",1/"in2"
 	if/[whoami == "root"] or [whoami == in1]
 		bintolist/$GROUPS/"GROUPS"
 		getindex/"GROUPS",in1/"ix"
 		if/[ix == 0]
-			set/"err","Group '",in1,"' not found"
+			// Group not found
+			set/"return_code","EINVAL"
 		else
 			bintolist/$GROUP_USERS/"GROUP_USERS"
 			getitem/"GROUP_USERS",ix/"it"
@@ -39,10 +39,6 @@ linkdef/"emc30","emc48","global"
 			endif
 		endif
 	else
-		set/"err","Permission denied"
-	endif
-	if/[err != ""]
-		set/"msg","2D: Unable to read group '",in1,"': ",err
-		source/$tmp_lib_pidkmsg/255000000,msg
+		set/"return_code","EACCES"
 	endif
 }
