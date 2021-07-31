@@ -30,7 +30,7 @@ linkdef/"emc17","emc23","global"
 		listtobin/"new"/"it"
 		replace/ix,it/"listc"
 	else
-		append/in2/"listn"
+		append/in3/"listn"
 		set/"it",il,";",in1
 		append/it/"listc"
 	endif
