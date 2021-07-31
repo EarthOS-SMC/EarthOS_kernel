@@ -22,6 +22,6 @@ linkdef/"emc3C","emc60","global"
 	getitem/"argument1",1/"in1"
 	getitem/"argument1",2/"in2"
 	getitem/"argument1",3/"in3"
-	set/"msg",in1," (pid ",pid," )"
+	set/"msg",in1," (pid ",pid,")"
 	kmsg/msg,in2,in3
 }
