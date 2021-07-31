@@ -36,6 +36,8 @@ warp
 	listtobin/"arg_1"/"$KERNEL_CMDLINE"
 	bintolist/$KERNEL_CMDLINE/"kargs"
 	set/"kacount",arg_count
+	// Init kernel log
+	set/"$kmsg",""
 	// Kernel start message
 	set/"$kstart",%time
 	kmsg/"",255255255,"EarthOS kernel loaded"
